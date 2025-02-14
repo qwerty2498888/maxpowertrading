@@ -1,0 +1,109 @@
+/* Общие стили */
+body {
+    background-color: #1e1e1e;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Заголовок */
+h1 {
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Контейнеры */
+.dash-container {
+    background-color: #292929;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px auto;
+    max-width: 800px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Поля ввода */
+.dash-input {
+    width: 97.5%;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    background-color: #3a3a3a;
+    color: white;
+    font-size: 16px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.dash-input:focus {
+    border: 2px solid #22b5ff;
+}
+
+/* Кнопки */
+.button-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.parameter-button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+    min-width: 120px;
+    text-align: center;
+}
+
+.parameter-button:hover {
+    filter: brightness(1.2);
+}
+
+/* Цвета кнопок */
+#btn-net-gex { background-color: #22b5ff; color: black; }
+#btn-ag { background-color: #915bf8; color: white; }
+#btn-call-oi { background-color: #02d432; color: black; }
+#btn-put-oi { background-color: #f32d35; color: white; }
+#btn-call-vol { background-color: #003cfe; color: white; }
+#btn-put-vol { background-color: #e55f04; color: white; }
+
+/* Активные кнопки */
+.parameter-button.active {
+    transform: scale(0.95);
+    box-shadow: inset 0px 0px 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Выпадающий список */
+.dash-dropdown .Select-control {
+    background-color: #3a3a3a;
+    color: white;
+    border-radius: 6px;
+    border: none;
+}
+
+.dash-dropdown .Select-menu-outer {
+    background-color: #3a3a3a;
+}
+
+.dash-dropdown .Select-option {
+    color: black;
+}
+
+.dash-dropdown .Select-option.is-selected {
+    background-color: #22b5ff;
+    color: white;
+}
+
+/* График */
+#options-chart {
+    border-radius: 8px;
+    background-color: #292929;
+    padding: 15px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
