@@ -344,13 +344,16 @@ def update_options_chart(ticker, dates, selected_params):
             tickmode='array',  # Используем массив значений для оси X
             tickvals=options_data['strike'].tolist(),  # Реальные значения страйков
             tickformat='d',  # Округление страйков до целых чисел
+            fixedrange=True,  # Отключаем масштабирование по оси X
         ),
-        yaxis=dict(title="Net GEX", side="left", showgrid=False, zeroline=False),
-        yaxis2=dict(title="", side="right", overlaying="y", showgrid=False, zeroline=False),
+        yaxis=dict(title="Net GEX", side="left", showgrid=False, zeroline=False, fixedrange=True),  # Отключаем масштабирование по оси Y
+        yaxis2=dict(title="", side="right", overlaying="y", showgrid=False, zeroline=False, fixedrange=True),  # Отключаем масштабирование по оси Y2
         title="" + ticker,
         plot_bgcolor='#1e1e1e',
         paper_bgcolor='#1e1e1e',
         font=dict(color='white'),
+        hovermode='x unified',  # Включаем всплывающие подсказки
+        dragmode=False,  # Отключаем перемещение и масштабирование
     )
 
     # Добавление водяного знака "Max Power"
@@ -561,21 +564,21 @@ def update_price_chart(ticker):
             showgrid=True,
             gridcolor='rgba(128, 128, 128, 0.2)',
             rangeslider=dict(visible=False),
-            autorange=True,  # Автоматическое расширение оси X
-            fixedrange=False,  # Разрешаем динамическое изменение диапазона
+            autorange=True,
+            fixedrange=True,  # Отключаем масштабирование по оси X
         ),
         yaxis=dict(
             title="Цена",
             showgrid=True,
             gridcolor='rgba(128, 128, 128, 0.2)',
-            fixedrange=False
+            fixedrange=True  # Отключаем масштабирование по оси Y
         ),
         plot_bgcolor='#1e1e1e',
         paper_bgcolor='#1e1e1e',
         font=dict(color='white'),
-        hovermode='x unified',
+        hovermode='x unified',  # Включаем всплывающие подсказки
+        dragmode=False,  # Отключаем перемещение и масштабирование
         margin=dict(l=50, r=50, b=50, t=50),
-        dragmode='pan'
     )
 
     # Добавление водяного знака "Max Power" на нижний график
@@ -590,9 +593,6 @@ def update_price_chart(ticker):
 
     return fig
 
-# Callback для обновления нового графика цены
-# Callback для обновления нового графика цены
-# Callback для обновления нового графика цены
 # Callback для обновления нового графика цены
 @app.callback(
     Output('price-chart-simplified', 'figure'),
@@ -710,21 +710,21 @@ def update_price_chart_simplified(ticker):
             showgrid=True,
             gridcolor='rgba(128, 128, 128, 0.2)',
             rangeslider=dict(visible=False),
-            autorange=True,  # Автоматическое расширение оси X
-            fixedrange=False,  # Разрешаем динамическое изменение диапазона
+            autorange=True,
+            fixedrange=True,  # Отключаем масштабирование по оси X
         ),
         yaxis=dict(
             title="Цена",
             showgrid=True,
             gridcolor='rgba(128, 128, 128, 0.2)',
-            fixedrange=False
+            fixedrange=True  # Отключаем масштабирование по оси Y
         ),
         plot_bgcolor='#1e1e1e',
         paper_bgcolor='#1e1e1e',
         font=dict(color='white'),
-        hovermode='x unified',
+        hovermode='x unified',  # Включаем всплывающие подсказки
+        dragmode=False,  # Отключаем перемещение и масштабирование
         margin=dict(l=50, r=50, b=50, t=50),
-        dragmode='pan'
     )
 
     # Добавление водяного знака "Max Power" на новый график
@@ -742,4 +742,3 @@ def update_price_chart_simplified(ticker):
 # Запуск приложения
 if __name__ == '__main__':
     app.run_server(host="0.0.0.0", port=8080)
-
