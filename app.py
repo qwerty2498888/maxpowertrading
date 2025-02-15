@@ -11,7 +11,10 @@ app = dash.Dash(__name__, suppress_callback_exceptions=True)
 
 # Функция для преобразования тикеров
 def normalize_ticker(ticker):
-    index_map = {"SPX": "^SPX", "NDX": "^NDX", "RUT": "^RUT", "Dia": "^Dia"}
+    index_map = {
+        "SPX": "^SPX", "NDX": "^NDX", "RUT": "^RUT", "DIA": "^DIA",
+        "SPY": "SPY", "QQQ": "QQQ", "DIA": "DIA", "XSP": "XSP", "IWM": "IWM"
+    }
     return index_map.get(ticker.upper(), ticker.upper())
 
 # Функция получения данных по опционам
@@ -71,30 +74,9 @@ def get_option_data(ticker, expirations):
 
     return combined_data, available_dates, spot_price, max_ag_strike
 
-
-# Функция для расчета значений AG, P1, N1, Put Vol, Call Vol
-def calculate_metrics(options_data):
-    if options_data is None or options_data.empty:
-        return None
-
-    max_ag = options_data['AG'].max()
-    max_p1 = options_data[options_data['Net GEX'] > 0]['Net GEX'].max()
-    max_n1 = options_data[options_data['Net GEX'] < 0]['Net GEX'].min()
-    max_put_vol = options_data['Put Volume'].max()
-    max_call_vol = options_data['Call Volume'].max()
-
-    return {
-        'max_ag': max_ag,
-        'max_p1': max_p1,
-        'max_n1': max_n1,
-        'max_put_vol': max_put_vol,
-        'max_call_vol': max_call_vol
-    }
-
-
 # Лейаут для объединенной страницы
 app.layout = html.Div([
-    html.H1("Options and Charts", style={'textAlign': 'center'}),
+    html.H1("Max Power", style={'textAlign': 'center'}),
 
     html.Div([
         html.Label("Введите тикер актива:"),
@@ -118,13 +100,25 @@ app.layout = html.Div([
         ], className="button-container"),
     ], className='dash-container'),
 
-    dcc.Store(id='selected-params', data=[]),  # Храним нажатые кнопки
+    dcc.Store(id='selected-params', data=['Net GEX']),  # Храним нажатые кнопки
     dcc.Store(id='options-data-store'),  # Хранение данных для Charts
 
-    dcc.Graph(id='options-chart', style={'height': '800px'}),
-    dcc.Graph(id='price-chart', style={'height': '800px'})
+    dcc.Graph(
+        id='options-chart',
+        style={'height': '900px'},  # Высота верхнего графика (оставляем как есть)
+        config={'displayModeBar': False}  # Отключаем панель инструментов
+    ),
+    dcc.Graph(
+        id='price-chart',
+        style={'height': '950px'},  # Увеличиваем высоту нижнего графика
+        config={'displayModeBar': False}  # Отключаем панель инструментов
+    ),
+    dcc.Graph(
+        id='price-chart-simplified',  # Новый график
+        style={'height': '950px'},  # Увеличиваем высоту нового графика
+        config={'displayModeBar': False}  # Отключаем панель инструментов
+    )
 ])
-
 
 # Callback для обновления списка дат
 @app.callback(
@@ -139,7 +133,6 @@ def update_dates(ticker):
         return [], []
     options = [{'label': date, 'value': date} for date in available_dates]
     return options, [available_dates[0]]  # Возвращаем список опций и первую дату по умолчанию
-
 
 # Callback для обновления нажатых кнопок
 @app.callback(
@@ -195,7 +188,6 @@ def update_selected_params(btn_net, btn_ag, btn_call_oi, btn_put_oi, btn_call_vo
     return selected_params, button_classes["btn-net-gex"], button_classes["btn-ag"], button_classes["btn-call-oi"], \
     button_classes["btn-put-oi"], button_classes["btn-call-vol"], button_classes["btn-put-vol"]
 
-
 # Callback для обновления графика опционов
 @app.callback(
     Output('options-chart', 'figure'),
@@ -215,8 +207,10 @@ def update_options_chart(ticker, dates, selected_params):
     fig = go.Figure()
 
     # Определение диапазона для индексов и акций
-    if ticker in ["^SPX", "^NDX", "^RUT", "^DJI"]:
+    if ticker in ["^SPX", "^NDX", "^RUT", "^Dia"]:
         price_range = 0.010  # 1.5% для индексов
+    elif ticker in ["SPY", "QQQ", "DIA", "XSP", "IWM"]:
+        price_range = 0.04  # 5% для ETF (SPY, QQQ, DIA, XSP, IWM)
     else:
         price_range = 0.30  # 30% для акций
 
@@ -228,6 +222,12 @@ def update_options_chart(ticker, dates, selected_params):
             (options_data['strike'] >= left_limit) & (options_data['strike'] <= right_limit)]
     else:
         left_limit = right_limit = 0
+
+    # Фильтрация страйков по выбранному параметру
+    if "Net GEX" in selected_params:
+        options_data = options_data[options_data['Net GEX'] != 0]
+    elif "AG" in selected_params:
+        options_data = options_data[options_data['AG'] != 0]
 
     # Добавление данных для выбранных параметров
     for parameter in selected_params:
@@ -324,7 +324,6 @@ def update_options_chart(ticker, dates, selected_params):
                 yaxis='y2'
             ))
 
-
     # Добавление вертикальной линии текущей цены
     if spot_price:
         fig.add_vline(
@@ -339,13 +338,11 @@ def update_options_chart(ticker, dates, selected_params):
     # Настройка границ оси X для динамического смещения
     fig.update_layout(
         xaxis=dict(
-            range=[left_limit, right_limit],
             title="Strike",
             showgrid=False,
             zeroline=False,
-            tickmode='linear',  # Линейное отображение страйков
-            tick0=left_limit,  # Начальное значение страйков
-            dtick=(right_limit - left_limit) / 20,  # Увеличиваем количество страйков
+            tickmode='array',  # Используем массив значений для оси X
+            tickvals=options_data['strike'].tolist(),  # Реальные значения страйков
             tickformat='d',  # Округление страйков до целых чисел
         ),
         yaxis=dict(title="Net GEX", side="left", showgrid=False, zeroline=False),
@@ -356,8 +353,17 @@ def update_options_chart(ticker, dates, selected_params):
         font=dict(color='white'),
     )
 
-    return fig
+    # Добавление водяного знака "Max Power"
+    fig.add_annotation(
+        xref="paper", yref="paper",
+        x=0.5, y=0.5,  # Центр графика
+        text="Max Power",
+        showarrow=False,
+        font=dict(size=80, color="rgba(255, 255, 255, 0.1)"),  # Полупрозрачный белый текст
+        textangle=0,  # Горизонтальный текст
+    )
 
+    return fig
 
 # Callback для обновления графика цены
 @app.callback(
@@ -368,7 +374,7 @@ def update_price_chart(ticker):
     # Нормализуем тикер
     ticker = normalize_ticker(ticker)
 
-    # Задаем интервал по умолчанию (например, '5m')
+    # Задаем интервал по умолчанию (например, '1m')
     interval = '1m'  # Фиксированный интервал
 
     # Получаем данные по тикеру
@@ -383,7 +389,7 @@ def update_price_chart(ticker):
 
     # Определение диапазона для индексов и акций
     if ticker in ["^SPX", "^NDX", "^RUT", "^DJI"]:
-        price_range = 0.010  # 1.5% для индексов
+        price_range = 0.01  # 1.5% для индексов
     else:
         price_range = 0.1  # 30% для акций
 
@@ -554,7 +560,9 @@ def update_price_chart(ticker):
             type='date',
             showgrid=True,
             gridcolor='rgba(128, 128, 128, 0.2)',
-            rangeslider=dict(visible=False)
+            rangeslider=dict(visible=False),
+            autorange=True,  # Автоматическое расширение оси X
+            fixedrange=False,  # Разрешаем динамическое изменение диапазона
         ),
         yaxis=dict(
             title="Цена",
@@ -568,6 +576,165 @@ def update_price_chart(ticker):
         hovermode='x unified',
         margin=dict(l=50, r=50, b=50, t=50),
         dragmode='pan'
+    )
+
+    # Добавление водяного знака "Max Power" на нижний график
+    fig.add_annotation(
+        xref="paper", yref="paper",
+        x=0.5, y=0.5,  # Центр графика
+        text="Max Power",
+        showarrow=False,
+        font=dict(size=80, color="rgba(255, 255, 255, 0.1)"),  # Полупрозрачный белый текст
+        textangle=0,  # Горизонтальный текст
+    )
+
+    return fig
+
+# Callback для обновления нового графика цены
+# Callback для обновления нового графика цены
+# Callback для обновления нового графика цены
+# Callback для обновления нового графика цены
+@app.callback(
+    Output('price-chart-simplified', 'figure'),
+    [Input('ticker-input', 'value')]
+)
+def update_price_chart_simplified(ticker):
+    # Нормализуем тикер
+    ticker = normalize_ticker(ticker)
+
+    # Задаем интервал по умолчанию (например, '1m')
+    interval = '1m'  # Фиксированный интервал
+
+    # Получаем данные по тикеру
+    stock = yf.Ticker(ticker)
+    data = stock.history(period='1d', interval=interval)
+
+    if data.empty:
+        return go.Figure()
+
+    # Получаем данные по опционам для расчета AG, Call Vol и Put Vol
+    options_data, _, spot_price, _ = get_option_data(ticker, [])
+
+    if options_data is None or options_data.empty:
+        return go.Figure()
+
+    # Определяем диапазон для индексов и акций
+    if ticker in ["^SPX", "^NDX", "^RUT", "^DJI"]:
+        price_range = 0.01  # 1.5% для индексов
+        resistance_zone_lower_percent = -0.0005  # -0.05%
+        resistance_zone_upper_percent = 0.0015  # +0.15%
+        support_zone_lower_percent = -0.0015  # -0.15%
+        support_zone_upper_percent = 0.0005  # +0.05%
+    else:
+        price_range = 0.1  # 30% для акций
+        resistance_zone_lower_percent = -0.002  # -0.2%
+        resistance_zone_upper_percent = 0.0035  # +0.35%
+        support_zone_lower_percent = -0.0035  # -0.35%
+        support_zone_upper_percent = 0.002  # +0.2%
+
+    if spot_price:
+        left_limit = spot_price - (spot_price * price_range)
+        right_limit = spot_price + (spot_price * price_range)
+        # Фильтрация данных для индексов, чтобы они не выходили за пределы видимой области
+        options_data = options_data[
+            (options_data['strike'] >= left_limit) & (options_data['strike'] <= right_limit)
+        ]
+    else:
+        left_limit = right_limit = 0
+
+    # Находим максимальное значение Call Volume, AG и Put Volume
+    max_call_vol_strike = options_data.loc[options_data['Call Volume'].idxmax(), 'strike']
+    max_ag_strike = options_data.loc[options_data['AG'].idxmax(), 'strike']
+    max_put_vol_strike = options_data.loc[options_data['Put Volume'].idxmax(), 'strike']
+
+    # Определяем, какие зоны рисовать
+    zones_to_draw = []
+
+    # Логика построения зон
+    if max_call_vol_strike > spot_price and max_ag_strike > spot_price and max_put_vol_strike < spot_price:
+        # Если Call Volume и AG выше цены, а Put Volume ниже цены
+        # Зона Resistance: от -0.05% до +0.15% (для индексов) или от -0.2% до +0.35% (для остальных)
+        resistance_zone_lower = max_call_vol_strike * (1 + resistance_zone_lower_percent)
+        resistance_zone_upper = max_call_vol_strike * (1 + resistance_zone_upper_percent)
+        zones_to_draw.append((resistance_zone_lower, resistance_zone_upper, 'Resistance zone'))
+
+        # Зона Support: от -0.15% до +0.05% (для индексов) или от -0.35% до +0.2% (для остальных)
+        support_zone_lower = max_put_vol_strike * (1 + support_zone_lower_percent)
+        support_zone_upper = max_put_vol_strike * (1 + support_zone_upper_percent)
+        zones_to_draw.append((support_zone_lower, support_zone_upper, 'Support zone'))
+
+    elif max_call_vol_strike > spot_price and max_ag_strike < spot_price and max_put_vol_strike < spot_price:
+        # Если Call Volume выше цены, а AG и Put Volume ниже цены
+        # Зона Resistance: от -0.05% до +0.15% (для индексов) или от -0.2% до +0.35% (для остальных)
+        resistance_zone_lower = max_call_vol_strike * (1 + resistance_zone_lower_percent)
+        resistance_zone_upper = max_call_vol_strike * (1 + resistance_zone_upper_percent)
+        zones_to_draw.append((resistance_zone_lower, resistance_zone_upper, 'Resistance zone'))
+
+        # Зона Support: от -0.15% до +0.05% (для индексов) или от -0.35% до +0.2% (для остальных)
+        support_zone_lower = max_ag_strike * (1 + support_zone_lower_percent)
+        support_zone_upper = max_ag_strike * (1 + support_zone_upper_percent)
+        zones_to_draw.append((support_zone_lower, support_zone_upper, 'Support zone'))
+
+    # Создаем свечной график
+    fig = go.Figure()
+
+    # Добавляем свечи
+    fig.add_trace(go.Candlestick(
+        x=data.index,
+        open=data['Open'],
+        high=data['High'],
+        low=data['Low'],
+        close=data['Close'],
+        name="Candlesticks"
+    ))
+
+    # Добавляем зоны
+    for lower, upper, label in zones_to_draw:
+        fig.add_trace(go.Scatter(
+            x=[data.index[0], data.index[-1], data.index[-1], data.index[0]],  # Координаты X для прямоугольника
+            y=[lower, lower, upper, upper],  # Координаты Y для прямоугольника
+            fill="toself",  # Заливка области
+            fillcolor="rgba(0, 160, 255, 0.2)" if label == 'Resistance zone' else "rgba(172, 86, 49, 0.2)",
+            line=dict(color="rgba(0, 160, 255, 0.5)" if label == 'Resistance zone' else "rgba(172, 86, 49, 0.5)"),
+            mode="lines",
+            name=label,  # Подпись зоны
+            hoverinfo="none",  # Отключаем всплывающие подсказки для зон
+        ))
+
+    # Настройка графика
+    fig.update_layout(
+        title=f"Support / Resistance {ticker}",  # Фиксированный интервал
+        xaxis=dict(
+            title="Время",
+            type='date',
+            showgrid=True,
+            gridcolor='rgba(128, 128, 128, 0.2)',
+            rangeslider=dict(visible=False),
+            autorange=True,  # Автоматическое расширение оси X
+            fixedrange=False,  # Разрешаем динамическое изменение диапазона
+        ),
+        yaxis=dict(
+            title="Цена",
+            showgrid=True,
+            gridcolor='rgba(128, 128, 128, 0.2)',
+            fixedrange=False
+        ),
+        plot_bgcolor='#1e1e1e',
+        paper_bgcolor='#1e1e1e',
+        font=dict(color='white'),
+        hovermode='x unified',
+        margin=dict(l=50, r=50, b=50, t=50),
+        dragmode='pan'
+    )
+
+    # Добавление водяного знака "Max Power" на новый график
+    fig.add_annotation(
+        xref="paper", yref="paper",
+        x=0.5, y=0.5,  # Центр графика
+        text="Max Power",
+        showarrow=False,
+        font=dict(size=80, color="rgba(255, 255, 255, 0.1)"),  # Полупрозрачный белый текст
+        textangle=0,  # Горизонтальный текст
     )
 
     return fig
