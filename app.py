@@ -55,7 +55,11 @@ app.layout = html.Div([
 def display_page(pathname):
     # Проверяем, авторизован ли пользователь и является ли он участником канала
     if 'user_id' not in session or not is_member(session['user_id']):
-        return html.Div("Доступ запрещен. Пожалуйста, авторизуйтесь через Telegram.")
+        return html.Div([
+            html.H1("Доступ запрещен"),
+            html.P("Пожалуйста, авторизуйтесь через Telegram, чтобы получить доступ к сайту."),
+            html.A('Авторизоваться через Telegram', href=f'https://oauth.telegram.org/auth?bot_id={TELEGRAM_BOT_TOKEN}&origin=https://your-render-app-url.com&request_access=write')
+        ])
     else:
         # Пользователь авторизован, показываем основной контент
         return html.Div([
@@ -66,6 +70,18 @@ def display_page(pathname):
                 'layout': {'title': 'Пример графика'}
             })
         ])
+
+# Защита всех маршрутов
+@server.before_request
+def check_auth():
+    # Исключаем маршрут /auth из проверки авторизации
+    if request.path == '/auth':
+        return
+
+    # Проверяем, авторизован ли пользователь и является ли он участником канала
+    if 'user_id' not in session or not is_member(session['user_id']):
+        # Если пользователь не авторизован, перенаправляем его на страницу авторизации
+        return redirect(f'https://oauth.telegram.org/auth?bot_id={TELEGRAM_BOT_TOKEN}&origin=https://your-render-app-url.com&request_access=write')
 
 
 # Инициализация Dash приложения
