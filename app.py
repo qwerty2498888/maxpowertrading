@@ -1,4 +1,3 @@
-# app.py
 import yfinance as yf
 import dash
 from dash import dcc, html
@@ -18,6 +17,16 @@ app = dash.Dash(__name__, server=server, url_base_pathname='/')
 # Токен бота и chat_id канала
 BOT_TOKEN = '8068526221:AAF2pw4c00-tWobTC-GJ6TtSE_sLLRKt8_U'
 CHANNEL_ID = '-1001373652914'
+
+# Инициализация базы данных
+def init_db():
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS users (chat_id TEXT PRIMARY KEY)''')
+    conn.commit()
+    conn.close()
+
+init_db()
 
 # Функция для проверки участника канала
 def is_user_in_channel(chat_id):
@@ -48,7 +57,7 @@ def login():
         </form>
     '''
 
-# Проверка доступа к основной странице
+# Проверка доступа к главной странице
 @server.route('/')
 def index():
     chat_id = session.get('chat_id')
