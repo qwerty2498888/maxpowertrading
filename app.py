@@ -12,7 +12,7 @@ app.server.secret_key = 'your_secret_key'  # Секретный ключ для 
 # Настройки Telegram Bot
 TELEGRAM_BOT_TOKEN = '8068526221:AAF2pw4c00-tWobTC-GJ6TtSE_sLLRKt8_U'  # Ваш токен бота
 TELEGRAM_CHANNEL_USERNAME = '@Trade_Channel'  # Ваш канал
-TELEGRAM_BOT_USERNAME = 'your_bot_username'  # Username вашего бота (например, MyBot)
+TELEGRAM_BOT_USERNAME = 'ttcttcbot'  # Username вашего бота (например, MyBot)
 
 # Функция для проверки, является ли пользователь участником канала
 def is_member(user_id):
@@ -63,7 +63,7 @@ app.layout = html.Div([
             **{
                 'data-telegram-login': TELEGRAM_BOT_USERNAME,
                 'data-size': 'large',
-                'data-auth-url': 'https://your-app-url.com/auth',  # Замените на ваш URL
+                'data-auth-url': 'https://maxpower-t7lp.onrender.com/auth',  # Ваш домен
                 'data-request-access': 'write'
             }
         )
@@ -106,17 +106,6 @@ def check_auth():
         return redirect(f'https://oauth.telegram.org/auth?bot_id={TELEGRAM_BOT_TOKEN}&origin=https://maxpower-t7lp.onrender.com/&request_access=write')
 
 
-# Защита всех маршрутов
-@server.before_request
-def check_auth():
-    # Исключаем маршрут /auth из проверки авторизации
-    if request.path == '/auth':
-        return
-
-    # Проверяем, авторизован ли пользователь и является ли он участником канала
-    if 'user_id' not in session or not is_member(session['user_id']):
-        # Если пользователь не авторизован, перенаправляем его на страницу авторизации
-        return redirect(f'https://oauth.telegram.org/auth?bot_id={TELEGRAM_BOT_TOKEN}&origin=https://your-render-app-url.com&request_access=write')
 
 # Функция для преобразования тикеров
 def normalize_ticker(ticker):
