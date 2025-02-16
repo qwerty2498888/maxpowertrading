@@ -6,7 +6,7 @@ import plotly.graph_objs as go
 import pandas as pd
 from datetime import datetime, timedelta
 from flask import Flask, session, request, redirect
-from telegram import Bot
+import requests
 
 # Инициализация Flask и Dash
 server = Flask(__name__)
@@ -16,13 +16,18 @@ app.server.secret_key = 'your_secret_key'  # Секретный ключ для 
 # Настройки Telegram Bot
 TELEGRAM_BOT_TOKEN = '8068526221:AAF2pw4c00-tWobTC-GJ6TtSE_sLLRKt8_U'  # Ваш токен бота
 TELEGRAM_CHANNEL_USERNAME = '@Trade_Channel'  # Ваш канал
-bot = Bot(token=TELEGRAM_BOT_TOKEN)
 
 # Функция для проверки, является ли пользователь участником канала
 def is_member(user_id):
     try:
-        chat_member = bot.get_chat_member(chat_id=TELEGRAM_CHANNEL_USERNAME, user_id=user_id)
-        return chat_member.status in ['member', 'administrator', 'creator']
+        # Используем Telegram Bot API для проверки членства в канале
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getChatMember"
+        params = {
+            "chat_id": TELEGRAM_CHANNEL_USERNAME,
+            "user_id": user_id
+        }
+        response = requests.get(url, params=params).json()
+        return response.get("result", {}).get("status") in ["member", "administrator", "creator"]
     except Exception as e:
         print(f"Ошибка при проверке участника канала: {e}")
         return False
@@ -80,11 +85,20 @@ def check_auth():
     # Проверяем, авторизован ли пользователь и является ли он участником канала
     if 'user_id' not in session or not is_member(session['user_id']):
         # Если пользователь не авторизован, перенаправляем его на страницу авторизации
+        return redirect(f'https://oauth.telegram.org/auth?bot_id={TELEGRAM_BOT_TOKEN}&origin=https://maxpower-t7lp.onrender.com/&request_access=write')
+
+
+# Защита всех маршрутов
+@server.before_request
+def check_auth():
+    # Исключаем маршрут /auth из проверки авторизации
+    if request.path == '/auth':
+        return
+
+    # Проверяем, авторизован ли пользователь и является ли он участником канала
+    if 'user_id' not in session or not is_member(session['user_id']):
+        # Если пользователь не авторизован, перенаправляем его на страницу авторизации
         return redirect(f'https://oauth.telegram.org/auth?bot_id={TELEGRAM_BOT_TOKEN}&origin=https://your-render-app-url.com&request_access=write')
-
-
-# Инициализация Dash приложения
-app = dash.Dash(__name__, suppress_callback_exceptions=True)
 
 # Функция для преобразования тикеров
 def normalize_ticker(ticker):
