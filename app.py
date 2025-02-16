@@ -43,8 +43,7 @@ def auth():
 # Лейаут Dash-приложения
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
-    html.Div(id='page-content'),
-    html.A('Авторизоваться через Telegram', href=f'https://oauth.telegram.org/auth?bot_id={TELEGRAM_BOT_TOKEN}&origin=https://your-render-app-url.com&request_access=write')
+    html.Div(id='page-content')
 ])
 
 # Callback для отображения контента в зависимости от авторизации
