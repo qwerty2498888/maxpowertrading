@@ -5,87 +5,71 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 import pandas as pd
 from datetime import datetime, timedelta
-import sqlite3
-import requests
-from flask import Flask, request, redirect, session
+from flask import Flask, session, request, redirect
+from telegram import Bot
 
 # Инициализация Flask и Dash
 server = Flask(__name__)
-server.secret_key = 'your_secret_key'  # Секретный ключ для сессий
-app = dash.Dash(__name__, server=server, url_base_pathname='/')
+app = dash.Dash(__name__, server=server, suppress_callback_exceptions=True)
+app.server.secret_key = 'your_secret_key'  # Секретный ключ для сессий Flask
 
-# Токен бота и chat_id канала
-BOT_TOKEN = '8068526221:AAF2pw4c00-tWobTC-GJ6TtSE_sLLRKt8_U'
-CHANNEL_ID = '-1001373652914'
+# Настройки Telegram Bot
+TELEGRAM_BOT_TOKEN = '8068526221:AAF2pw4c00-tWobTC-GJ6TtSE_sLLRKt8_U'  # Ваш токен бота
+TELEGRAM_CHANNEL_USERNAME = '@Trade_Channel'  # Ваш канал
+bot = Bot(token=TELEGRAM_BOT_TOKEN)
 
-# Инициализация базы данных
-def init_db():
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS users (chat_id TEXT PRIMARY KEY)''')
-    conn.commit()
-    conn.close()
+# Функция для проверки, является ли пользователь участником канала
+def is_member(user_id):
+    try:
+        chat_member = bot.get_chat_member(chat_id=TELEGRAM_CHANNEL_USERNAME, user_id=user_id)
+        return chat_member.status in ['member', 'administrator', 'creator']
+    except Exception as e:
+        print(f"Ошибка при проверке участника канала: {e}")
+        return False
 
-init_db()
-
-# Функция для проверки участника канала
-def is_user_in_channel(chat_id):
-    url = f'https://api.telegram.org/bot{BOT_TOKEN}/getChatMember'
-    params = {'chat_id': CHANNEL_ID, 'user_id': chat_id}
-    response = requests.get(url, params=params).json()
-    return response.get('result', {}).get('status') in ['member', 'administrator', 'creator']
-
-# Страница входа
-@server.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        chat_id = request.form['chat_id']
-        if is_user_in_channel(chat_id):
-            conn = sqlite3.connect('users.db')
-            c = conn.cursor()
-            c.execute('INSERT OR IGNORE INTO users (chat_id) VALUES (?)', (chat_id,))
-            conn.commit()
-            conn.close()
-            session['chat_id'] = chat_id
-            return redirect('/')
-        else:
-            return "Вы не являетесь участником канала."
-    return '''
-        <form method="post">
-            Telegram Chat ID: <input type="text" name="chat_id">
-            <input type="submit" value="Войти">
-        </form>
-    '''
-
-# Проверка доступа к главной странице
-@server.route('/')
-def index():
-    chat_id = session.get('chat_id')
-    if chat_id:
-        conn = sqlite3.connect('users.db')
-        c = conn.cursor()
-        c.execute('SELECT chat_id FROM users WHERE chat_id = ?', (chat_id,))
-        if c.fetchone():
-            return app.index()
-        else:
-            return redirect('/login')
+# Маршрут для авторизации через Telegram
+@server.route('/auth')
+def auth():
+    user_data = request.args
+    user_id = user_data.get('id')
+    if user_id and is_member(user_id):
+        # Пользователь является участником канала, сохраняем его ID в сессии
+        session['user_id'] = user_id
+        return redirect('/')
     else:
-        return redirect('/login')
+        # Пользователь не является участником канала, запрещаем доступ
+        return "Доступ запрещен. Вы не являетесь участником канала.", 403
 
-# Удаление chat_id при выходе из канала
-@server.route('/webhook', methods=['POST'])
-def webhook():
-    update = request.json
-    if 'my_chat_member' in update:
-        chat_id = update['my_chat_member']['from']['id']
-        new_status = update['my_chat_member']['new_chat_member']['status']
-        if new_status == 'left' or new_status == 'kicked':
-            conn = sqlite3.connect('users.db')
-            c = conn.cursor()
-            c.execute('DELETE FROM users WHERE chat_id = ?', (chat_id,))
-            conn.commit()
-            conn.close()
-    return 'ok'
+# Лейаут Dash-приложения
+app.layout = html.Div([
+    dcc.Location(id='url', refresh=False),
+    html.Div(id='page-content'),
+    html.A('Авторизоваться через Telegram', href=f'https://oauth.telegram.org/auth?bot_id={TELEGRAM_BOT_TOKEN}&origin=https://your-render-app-url.com&request_access=write')
+])
+
+# Callback для отображения контента в зависимости от авторизации
+@app.callback(
+    Output('page-content', 'children'),
+    [Input('url', 'pathname')]
+)
+def display_page(pathname):
+    # Проверяем, авторизован ли пользователь и является ли он участником канала
+    if 'user_id' not in session or not is_member(session['user_id']):
+        return html.Div("Доступ запрещен. Пожалуйста, авторизуйтесь через Telegram.")
+    else:
+        # Пользователь авторизован, показываем основной контент
+        return html.Div([
+            html.H1("Добро пожаловать на сайт!"),
+            # Ваш основной контент Dash-приложения
+            dcc.Graph(id='example-graph', figure={
+                'data': [{'x': [1, 2, 3], 'y': [4, 1, 2], 'type': 'bar', 'name': 'Example'}],
+                'layout': {'title': 'Пример графика'}
+            })
+        ])
+
+
+# Инициализация Dash приложения
+app = dash.Dash(__name__, suppress_callback_exceptions=True)
 
 # Функция для преобразования тикеров
 def normalize_ticker(ticker):
