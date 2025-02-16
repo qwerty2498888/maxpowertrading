@@ -1,3 +1,4 @@
+# app.py
 import yfinance as yf
 import dash
 from dash import dcc, html
@@ -5,9 +6,77 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 import pandas as pd
 from datetime import datetime, timedelta
+import sqlite3
+import requests
+from flask import Flask, request, redirect, session
 
-# Инициализация Dash приложения
-app = dash.Dash(__name__, suppress_callback_exceptions=True)
+# Инициализация Flask и Dash
+server = Flask(__name__)
+server.secret_key = 'your_secret_key'  # Секретный ключ для сессий
+app = dash.Dash(__name__, server=server, url_base_pathname='/')
+
+# Токен бота и chat_id канала
+BOT_TOKEN = '8068526221:AAF2pw4c00-tWobTC-GJ6TtSE_sLLRKt8_U'
+CHANNEL_ID = '-1001373652914'
+
+# Функция для проверки участника канала
+def is_user_in_channel(chat_id):
+    url = f'https://api.telegram.org/bot{BOT_TOKEN}/getChatMember'
+    params = {'chat_id': CHANNEL_ID, 'user_id': chat_id}
+    response = requests.get(url, params=params).json()
+    return response.get('result', {}).get('status') in ['member', 'administrator', 'creator']
+
+# Страница входа
+@server.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        chat_id = request.form['chat_id']
+        if is_user_in_channel(chat_id):
+            conn = sqlite3.connect('users.db')
+            c = conn.cursor()
+            c.execute('INSERT OR IGNORE INTO users (chat_id) VALUES (?)', (chat_id,))
+            conn.commit()
+            conn.close()
+            session['chat_id'] = chat_id
+            return redirect('/')
+        else:
+            return "Вы не являетесь участником канала."
+    return '''
+        <form method="post">
+            Telegram Chat ID: <input type="text" name="chat_id">
+            <input type="submit" value="Войти">
+        </form>
+    '''
+
+# Проверка доступа к основной странице
+@server.route('/')
+def index():
+    chat_id = session.get('chat_id')
+    if chat_id:
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute('SELECT chat_id FROM users WHERE chat_id = ?', (chat_id,))
+        if c.fetchone():
+            return app.index()
+        else:
+            return redirect('/login')
+    else:
+        return redirect('/login')
+
+# Удаление chat_id при выходе из канала
+@server.route('/webhook', methods=['POST'])
+def webhook():
+    update = request.json
+    if 'my_chat_member' in update:
+        chat_id = update['my_chat_member']['from']['id']
+        new_status = update['my_chat_member']['new_chat_member']['status']
+        if new_status == 'left' or new_status == 'kicked':
+            conn = sqlite3.connect('users.db')
+            c = conn.cursor()
+            c.execute('DELETE FROM users WHERE chat_id = ?', (chat_id,))
+            conn.commit()
+            conn.close()
+    return 'ok'
 
 # Функция для преобразования тикеров
 def normalize_ticker(ticker):
@@ -742,3 +811,4 @@ def update_price_chart_simplified(ticker):
 # Запуск приложения
 if __name__ == '__main__':
     app.run_server(host="0.0.0.0", port=8080)
+
