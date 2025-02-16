@@ -1,11 +1,7 @@
-import yfinance as yf
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
-import plotly.graph_objs as go
-import pandas as pd
-from datetime import datetime, timedelta
-from flask import Flask, session, request, redirect
+from flask import Flask, request, redirect, session
 import requests
 
 # Инициализация Flask и Dash
@@ -16,6 +12,7 @@ app.server.secret_key = 'your_secret_key'  # Секретный ключ для 
 # Настройки Telegram Bot
 TELEGRAM_BOT_TOKEN = '8068526221:AAF2pw4c00-tWobTC-GJ6TtSE_sLLRKt8_U'  # Ваш токен бота
 TELEGRAM_CHANNEL_USERNAME = '@Trade_Channel'  # Ваш канал
+TELEGRAM_BOT_USERNAME = 'your_bot_username'  # Username вашего бота (например, MyBot)
 
 # Функция для проверки, является ли пользователь участником канала
 def is_member(user_id):
@@ -35,11 +32,21 @@ def is_member(user_id):
 # Маршрут для авторизации через Telegram
 @server.route('/auth')
 def auth():
+    # Получаем данные от Telegram
     user_data = request.args
+
+    # Проверяем, что данные корректны
+    if not user_data.get('id'):
+        return "Ошибка авторизации. Пожалуйста, попробуйте снова.", 400
+
+    # Проверяем, является ли пользователь участником канала
     user_id = user_data.get('id')
-    if user_id and is_member(user_id):
-        # Пользователь является участником канала, сохраняем его ID в сессии
+    if is_member(user_id):
+        # Пользователь является участником канала, сохраняем его данные в сессии
         session['user_id'] = user_id
+        session['first_name'] = user_data.get('first_name')
+        session['last_name'] = user_data.get('last_name')
+        session['username'] = user_data.get('username')
         return redirect('/')
     else:
         # Пользователь не является участником канала, запрещаем доступ
@@ -48,7 +55,19 @@ def auth():
 # Лейаут Dash-приложения
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
-    html.Div(id='page-content')
+    html.Div(id='page-content'),
+    html.Div([
+        # Telegram Login Widget
+        html.Script(
+            src="https://telegram.org/js/telegram-widget.js?7",
+            **{
+                'data-telegram-login': TELEGRAM_BOT_USERNAME,
+                'data-size': 'large',
+                'data-auth-url': 'https://your-app-url.com/auth',  # Замените на ваш URL
+                'data-request-access': 'write'
+            }
+        )
+    ])
 ])
 
 # Callback для отображения контента в зависимости от авторизации
@@ -61,13 +80,12 @@ def display_page(pathname):
     if 'user_id' not in session or not is_member(session['user_id']):
         return html.Div([
             html.H1("Доступ запрещен"),
-            html.P("Пожалуйста, авторизуйтесь через Telegram, чтобы получить доступ к сайту."),
-            html.A('Авторизоваться через Telegram', href=f'https://oauth.telegram.org/auth?bot_id={TELEGRAM_BOT_TOKEN}&origin=https://your-render-app-url.com&request_access=write')
+            html.P("Пожалуйста, авторизуйтесь через Telegram, чтобы получить доступ к сайту.")
         ])
     else:
         # Пользователь авторизован, показываем основной контент
         return html.Div([
-            html.H1("Добро пожаловать на сайт!"),
+            html.H1(f"Добро пожаловать, {session['first_name']}!"),
             # Ваш основной контент Dash-приложения
             dcc.Graph(id='example-graph', figure={
                 'data': [{'x': [1, 2, 3], 'y': [4, 1, 2], 'type': 'bar', 'name': 'Example'}],
