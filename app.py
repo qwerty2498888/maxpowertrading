@@ -8,6 +8,8 @@ from datetime import datetime, timedelta
 import sqlite3
 import requests
 from flask import Flask, request, redirect, session
+import hashlib
+import hmac
 
 # Инициализация Flask и Dash
 server = Flask(__name__)
@@ -46,7 +48,7 @@ def login():
         <body>
             <h2>Войти через Telegram</h2>
             <script async src="https://telegram.org/js/telegram-widget.js?7"
-                data-telegram-login="your_bot_username"
+                data-telegram-login="TTCTTC_bot"
                 data-size="large"
                 data-auth-url="/auth"
                 data-request-access="write">
@@ -66,10 +68,7 @@ def index():
         c.execute('SELECT chat_id FROM users WHERE chat_id = ?', (chat_id,))
         if c.fetchone():
             return app.index()
-        else:
-            return redirect('/login')
-    else:
-        return redirect('/login')
+    return redirect('/login')
 
 # Удаление chat_id при выходе из канала
 @server.route('/webhook', methods=['POST'])
