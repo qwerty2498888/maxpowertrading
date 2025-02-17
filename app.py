@@ -1,11 +1,6 @@
-import yfinance as yf
 import dash
 from dash import dcc, html
-from dash.dependencies import Input, Output, State
-import plotly.graph_objs as go
-import pandas as pd
-from datetime import datetime, timedelta
-from flask import Flask, request, redirect, url_for, jsonify
+from flask import Flask, request, redirect, jsonify
 import hashlib
 import hmac
 import requests
@@ -20,15 +15,11 @@ server = Flask(__name__)
 # Создаём Dash-приложение
 app = dash.Dash(__name__, suppress_callback_exceptions=True, server=server, routes_pathname_prefix='/dashboard/')
 
-
-# Функция для проверки подписи Telegram
-def check_telegram_auth(auth_data):
-    """ Проверка подписи Telegram """
-    check_string = "\n".join([f"{k}={v}" for k, v in sorted(auth_data.items()) if k != "hash"])
-    secret_key = hmac.new(TOKEN.encode(), digestmod=hashlib.sha256).digest()
-    expected_hash = hmac.new(secret_key, check_string.encode(), hashlib.sha256).hexdigest()
-    return expected_hash == auth_data["hash"]
-
+# ✅ Добавляем `layout`, чтобы Dash не выдавал ошибку
+app.layout = html.Div([
+    html.H1("Dashboard", style={'textAlign': 'center'}),
+    dcc.Graph(id='options-chart', style={'height': '600px'}),
+])
 
 # Функция проверки членства в Telegram-канале
 def is_member(user_id):
@@ -37,75 +28,7 @@ def is_member(user_id):
     response = requests.get(url, params={"chat_id": CHANNEL_ID, "user_id": user_id}).json()
     return response.get("ok") and response.get("result", {}).get("status") in ["member", "administrator", "creator"]
 
-
-# Маршрут для авторизации через Telegram
-@server.route("/verify")
-def verify():
-    auth_data = request.args.to_dict()
-
-    if not auth_data or "id" not in auth_data:
-        return "Ошибка: Telegram не передал данные!", 400
-
-    if not check_telegram_auth(auth_data):
-        return "Ошибка авторизации Telegram", 403
-
-    user_id = int(auth_data.get("id", 0))
-
-    if not is_member(user_id):
-        return "Доступ запрещён: вы не подписаны на канал!", 403
-
-    # Генерируем временный токен доступа
-    token = hashlib.sha256(f"{user_id}{TOKEN}".encode()).hexdigest()
-    return redirect(f"/dashboard?token={token}&user_id={user_id}")
-
-
-# Маршрут для проверки доступа
-@server.route("/check_access")
-def check_access():
-    user_id = request.args.get("user_id")
-    token = request.args.get("token")
-
-    if not user_id or not token:
-        return jsonify({"status": "error", "message": "Нет токена"}), 403
-
-    if not is_member(user_id):
-        return jsonify({"status": "error", "message": "Вы больше не в канале"}), 403
-
-    return jsonify({"status": "ok", "message": "Доступ разрешён"}), 200
-
-
-# Лейаут Dash-приложения
-app.layout = html.Div([
-    html.H1("Max Power Dashboard", style={'textAlign': 'center'}),
-
-    html.Div([
-        html.Label("Введите тикер актива:"),
-        dcc.Input(id='ticker-input', type='text', value='SPX', className='dash-input'),
-    ], className='dash-container'),
-
-    dcc.Graph(id='options-chart', style={'height': '900px'}, config={'displayModeBar': False}),
-
-    html.Script("""
-        function checkAccess() {
-            let urlParams = new URLSearchParams(window.location.search);
-            let user_id = urlParams.get('user_id');
-            let token = urlParams.get('token');
-
-            fetch(`/check_access?user_id=${user_id}&token=${token}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status !== "ok") {
-                        window.location.href = "/";
-                    }
-                });
-        }
-
-        setInterval(checkAccess, 10000);
-    """, type="text/javascript"),
-])
-
-
-# Главная страница (авторизация)
+# Главная страница (авторизация через Telegram Web Apps API)
 @server.route("/")
 def index():
     return '''
@@ -137,6 +60,67 @@ def index():
             </script>
         </body>
         </html>
+    '''
+
+# Проверка пользователя и вход в систему
+@server.route("/verify")
+def verify():
+    user_id = request.args.get("user_id")
+
+    if not user_id:
+        return "Ошибка: Telegram не передал данные!", 400
+
+    if not is_member(user_id):
+        return "Доступ запрещён: вы не подписаны на канал!", 403
+
+    # Генерируем токен (используется как параметр в URL)
+    token = hashlib.sha256(f"{user_id}{TOKEN}".encode()).hexdigest()
+    return redirect(f"/dashboard?token={token}&user_id={user_id}")
+
+# Проверка членства (каждые 10 секунд)
+@server.route("/check_access")
+def check_access():
+    user_id = request.args.get("user_id")
+
+    if not user_id or not is_member(user_id):
+        return jsonify({"status": "error", "message": "Вы больше не в канале"}), 403
+
+    return jsonify({"status": "ok", "message": "Доступ разрешён"}), 200
+
+# Dashboard (разлогинивает, если пользователь выходит из канала)
+@server.route("/dashboard")
+def dashboard():
+    user_id = request.args.get("user_id")
+
+    if not user_id or not is_member(user_id):
+        return redirect("/")
+
+    return f'''
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dashboard</title>
+        <script>
+            function checkAccess() {{
+                fetch("/check_access?user_id={user_id}")
+                    .then(response => response.json())
+                    .then(data => {{
+                        if (data.status !== "ok") {{
+                            window.location.href = "/";
+                        }}
+                    }});
+            }}
+            setInterval(checkAccess, 10000);
+        </script>
+    </head>
+    <body>
+        <h1>Добро пожаловать, {user_id}!</h1>
+        <p>Если вы покинете канал, доступ закроется автоматически.</p>
+        <a href="/">Выйти</a>
+    </body>
+    </html>
     '''
 
 # Запуск сервера
