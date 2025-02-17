@@ -115,27 +115,29 @@ def index():
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Вход через Telegram</title>
-            <script async src="https://telegram.org/js/telegram-widget.js?22"></script>
+            <script src="https://telegram.org/js/telegram-web-app.js"></script>
         </head>
         <body>
             <h1>Вход через Telegram</h1>
-            <div id="telegram-login-container"></div>
+            <button id="login-btn" style="font-size: 20px; padding: 10px;">Войти через Telegram</button>
+
             <script>
-                document.addEventListener("DOMContentLoaded", function() {
-                    let container = document.getElementById('telegram-login-container');
-                    container.innerHTML = '<script async src="https://telegram.org/js/telegram-widget.js?22" '
-                        + 'data-telegram-login="Ttcttc_bot" '  // Здесь правильный юзернейм бота
-                        + 'data-size="large" '
-                        + 'data-auth-url="https://maxpower-t7lp.onrender.com/verify" '
-                        + 'data-request-access="write"><\\/script>';
+                document.getElementById("login-btn").addEventListener("click", function() {
+                    let tg = window.Telegram.WebApp;
+                    tg.expand();
+                    tg.MainButton.setText("Подтвердить вход");
+                    tg.MainButton.show();
+                    tg.onEvent("mainButtonClicked", function() {
+                        let user = tg.initDataUnsafe.user;
+                        if (user) {
+                            window.location.href = "/verify?user_id=" + user.id + "&first_name=" + user.first_name;
+                        }
+                    });
                 });
             </script>
         </body>
         </html>
     '''
-
-
-
 
 # Запуск сервера
 if __name__ == "__main__":
