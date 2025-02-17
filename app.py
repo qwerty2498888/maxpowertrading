@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
 
 # Список разрешенных пользователей Telegram
-ALLOWED_USERS = ["@MaxPower212", "Alabama21212"]
+ALLOWED_USERS = ["@MaxPower212", "212", "@AnotherUser"]
 
 # Функция для преобразования тикеров
 def normalize_ticker(ticker):
@@ -79,13 +79,18 @@ def get_option_data(ticker, expirations):
 
 # Лейаут для объединенной страницы
 app.layout = html.Div([
-    html.Div([
+    dcc.Store(id='username-store', storage_type='local'),  # Хранилище для имени пользователя
+    dcc.Store(id='auth-status', storage_type='local', data=False),  # Хранилище для статуса авторизации
+
+    # Блок для ввода имени пользователя (отображается только до авторизации)
+    html.Div(id='login-container', children=[
         html.Label("Введите ваше имя пользователя Telegram:"),
         dcc.Input(id='username-input', type='text', placeholder='@username', className='dash-input'),
         html.Button('Проверить', id='submit-button', n_clicks=0, className='dash-button'),
         html.Div(id='access-message', style={'margin-top': '10px'})
-    ], className='dash-container', id='access-control'),
+    ], className='dash-container'),
 
+    # Основной контент (отображается только после авторизации)
     html.Div(id='main-content', style={'display': 'none'}, children=[
         html.H1("Max Power", style={'textAlign': 'center'}),
 
@@ -132,20 +137,51 @@ app.layout = html.Div([
     ])
 ])
 
-# Callback для проверки имени пользователя
+# Callback для проверки имени пользователя и управления видимостью элементов
 @app.callback(
     [Output('access-message', 'children'),
-     Output('main-content', 'style')],
+     Output('main-content', 'style'),
+     Output('login-container', 'style'),
+     Output('username-store', 'data'),
+     Output('auth-status', 'data')],
     [Input('submit-button', 'n_clicks')],
-    [State('username-input', 'value')]
+    [State('username-input', 'value'),
+     State('username-store', 'data'),
+     State('auth-status', 'data')]
 )
-def check_username(n_clicks, username):
+def check_username(n_clicks, username, stored_username, auth_status):
     if n_clicks > 0:
         if username in ALLOWED_USERS:
-            return "Доступ разрешен.", {'display': 'block'}
+            return (
+                "Доступ разрешен.",  # Сообщение
+                {'display': 'block'},  # Основной контент виден
+                {'display': 'none'},  # Поле ввода скрыто
+                username,  # Сохраняем имя пользователя
+                True  # Устанавливаем статус авторизации
+            )
         else:
-            return "Доступ запрещен.", {'display': 'none'}
-    return "", {'display': 'none'}
+            return (
+                "Доступ запрещен.",  # Сообщение
+                {'display': 'none'},  # Основной контент скрыт
+                {'display': 'block'},  # Поле ввода видно
+                None,  # Очищаем имя пользователя
+                False  # Устанавливаем статус авторизации
+            )
+    elif stored_username and stored_username in ALLOWED_USERS and auth_status:
+        return (
+            "",  # Сообщение не нужно
+            {'display': 'block'},  # Основной контент виден
+            {'display': 'none'},  # Поле ввода скрыто
+            stored_username,  # Сохраняем имя пользователя
+            True  # Устанавливаем статус авторизации
+        )
+    return (
+        "",  # Сообщение не нужно
+        {'display': 'none'},  # Основной контент скрыт
+        {'display': 'block'},  # Поле ввода видно
+        stored_username,  # Сохраняем имя пользователя
+        auth_status  # Сохраняем статус авторизации
+    )
 
 # Callback для обновления списка дат
 @app.callback(
@@ -235,11 +271,11 @@ def update_options_chart(ticker, dates, selected_params):
 
     # Определение диапазона для индексов и акций
     if ticker in ["^SPX", "^NDX", "^RUT", "^Dia"]:
-        price_range = 0.010  # 1.5% для индексов
+        price_range = 0.013  # 1.5% для индексов
     elif ticker in ["SPY", "QQQ", "DIA", "XSP", "IWM"]:
         price_range = 0.04  # 5% для ETF (SPY, QQQ, DIA, XSP, IWM)
     else:
-        price_range = 0.30  # 30% для акций
+        price_range = 0.15  # 30% для акций
 
     if spot_price:
         left_limit = spot_price - (spot_price * price_range)
@@ -415,8 +451,10 @@ def update_price_chart(ticker):
     options_data, _, spot_price, max_ag_strike = get_option_data(ticker, [])
 
     # Определение диапазона для индексов и акций
-    if ticker in ["^SPX", "^NDX", "^RUT", "^DJI"]:
-        price_range = 0.01  # 1.5% для индексов
+    if ticker in ["^SPX", "^NDX", "^RUT", "^Dia"]:
+        price_range = 0.013  # 1.5% для индексов
+    elif ticker in ["SPY", "QQQ", "DIA", "XSP", "IWM"]:
+        price_range = 0.013  # 5% для ETF (SPY, QQQ, DIA, XSP, IWM)
     else:
         price_range = 0.1  # 30% для акций
 
@@ -653,7 +691,7 @@ def update_price_chart_simplified(ticker):
         support_zone_lower_percent = -0.0015  # -0.15%
         support_zone_upper_percent = 0.0005  # +0.05%
     else:
-        price_range = 0.1  # 30% для акций
+        price_range = 0.07  # 30% для акций
         resistance_zone_lower_percent = -0.002  # -0.2%
         resistance_zone_upper_percent = 0.0035  # +0.35%
         support_zone_lower_percent = -0.0035  # -0.35%
