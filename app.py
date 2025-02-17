@@ -1,110 +1,74 @@
+import yfinance as yf
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
-from flask import Flask, request, redirect, session
+import plotly.graph_objs as go
+import pandas as pd
+from datetime import datetime, timedelta
+from flask import Flask, request, session, redirect, url_for
+import hashlib
+import hmac
 import requests
 
-# Инициализация Flask и Dash
+# Настройки Telegram API
+TOKEN = "8068526221:AAF2pw4c00-tWobTC-GJ6TtSE_sLLRKt8_U"
+CHANNEL_ID = "@Trade_Channel"  # Замените на ваш канал
+
+# Создаём Flask сервер
 server = Flask(__name__)
-app = dash.Dash(__name__, server=server, suppress_callback_exceptions=True)
-app.server.secret_key = 'your_secret_key'  # Секретный ключ для сессий Flask
+server.secret_key = "секретный_ключ_для_сессий"
 
-# Настройки Telegram Bot
-TELEGRAM_BOT_TOKEN = '8068526221:AAF2pw4c00-tWobTC-GJ6TtSE_sLLRKt8_U'  # Ваш токен бота
-TELEGRAM_CHANNEL_USERNAME = '@Trade_Channel'  # Ваш канал
-TELEGRAM_BOT_USERNAME = 'ttcttcbot'  # Username вашего бота (например, MyBot)
+# Создаём Dash-приложение
+app = dash.Dash(__name__, suppress_callback_exceptions=True, server=server)
 
-# Функция для проверки, является ли пользователь участником канала
+# Функция для проверки подписи Telegram
+def check_telegram_auth(auth_data):
+    """ Проверка подписи Telegram """
+    check_string = "\n".join([f"{k}={v}" for k, v in sorted(auth_data.items()) if k != "hash"])
+    secret_key = hashlib.sha256(TOKEN.encode()).digest()  # Исправлено
+    expected_hash = hmac.new(secret_key, check_string.encode(), hashlib.sha256).hexdigest()
+    return expected_hash == auth_data["hash"]
+
+# Функция проверки, является ли пользователь участником канала
 def is_member(user_id):
-    try:
-        # Используем Telegram Bot API для проверки членства в канале
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getChatMember"
-        params = {
-            "chat_id": TELEGRAM_CHANNEL_USERNAME,
-            "user_id": user_id
-        }
-        response = requests.get(url, params=params).json()
-        return response.get("result", {}).get("status") in ["member", "administrator", "creator"]
-    except Exception as e:
-        print(f"Ошибка при проверке участника канала: {e}")
-        return False
+    """ Проверяет, состоит ли пользователь в закрытом канале """
+    url = f"https://api.telegram.org/bot{TOKEN}/getChatMember"
+    response = requests.get(url, params={"chat_id": CHANNEL_ID, "user_id": user_id}).json()
+    return response.get("ok") and response.get("result", {}).get("status") in ["member", "administrator", "creator"]
 
 # Маршрут для авторизации через Telegram
-@server.route('/auth')
-def auth():
-    # Получаем данные от Telegram
-    user_data = request.args
+@server.route("/verify")
+def verify():
+    auth_data = request.args.to_dict()
+    if not check_telegram_auth(auth_data):
+        return "Ошибка авторизации", 403
 
-    # Проверяем, что данные корректны
-    if not user_data.get('id'):
-        return "Ошибка авторизации. Пожалуйста, попробуйте снова.", 400
+    user_id = int(auth_data.get("id", 0))  # Преобразуем в число
+    if not is_member(user_id):
+        return "Доступ запрещен", 403
 
-    # Проверяем, является ли пользователь участником канала
-    user_id = user_data.get('id')
-    if is_member(user_id):
-        # Пользователь является участником канала, сохраняем его данные в сессии
-        session['user_id'] = user_id
-        session['first_name'] = user_data.get('first_name')
-        session['last_name'] = user_data.get('last_name')
-        session['username'] = user_data.get('username')
-        return redirect('/')
-    else:
-        # Пользователь не является участником канала, запрещаем доступ
-        return "Доступ запрещен. Вы не являетесь участником канала.", 403
+    session["user_id"] = user_id  # Сохраняем ID пользователя в сессии
+    return redirect(url_for("index"))
 
-# Лейаут Dash-приложения
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    html.Div(id='page-content'),
-    html.Div([
-        # Telegram Login Widget
-        html.Script(
-            src="https://telegram.org/js/telegram-widget.js?7",
-            **{
-                'data-telegram-login': TELEGRAM_BOT_USERNAME,
-                'data-size': 'large',
-                'data-auth-url': 'https://maxpower-t7lp.onrender.com/auth',  # Ваш домен
-                'data-request-access': 'write'
-            }
-        )
-    ])
-])
+# Маршрут выхода
+@server.route("/logout")
+def logout():
+    session.pop("user_id", None)
+    return redirect(url_for("index"))
 
-# Callback для отображения контента в зависимости от авторизации
-@app.callback(
-    Output('page-content', 'children'),
-    [Input('url', 'pathname')]
-)
-def display_page(pathname):
-    # Проверяем, авторизован ли пользователь и является ли он участником канала
-    if 'user_id' not in session or not is_member(session['user_id']):
-        return html.Div([
-            html.H1("Доступ запрещен"),
-            html.P("Пожалуйста, авторизуйтесь через Telegram, чтобы получить доступ к сайту.")
-        ])
-    else:
-        # Пользователь авторизован, показываем основной контент
-        return html.Div([
-            html.H1(f"Добро пожаловать, {session['first_name']}!"),
-            # Ваш основной контент Dash-приложения
-            dcc.Graph(id='example-graph', figure={
-                'data': [{'x': [1, 2, 3], 'y': [4, 1, 2], 'type': 'bar', 'name': 'Example'}],
-                'layout': {'title': 'Пример графика'}
-            })
-        ])
-
-# Защита всех маршрутов
-@server.before_request
-def check_auth():
-    # Исключаем маршрут /auth из проверки авторизации
-    if request.path == '/auth':
-        return
-
-    # Проверяем, авторизован ли пользователь и является ли он участником канала
-    if 'user_id' not in session or not is_member(session['user_id']):
-        # Если пользователь не авторизован, перенаправляем его на страницу авторизации
-        return redirect(f'https://oauth.telegram.org/auth?bot_id={TELEGRAM_BOT_TOKEN}&origin=https://maxpower-t7lp.onrender.com/&request_access=write')
-
+# Главная страница
+@server.route("/")
+def index():
+    if "user_id" not in session:
+        return '''
+            <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                data-telegram-login="MaxPowerBot" 
+                data-size="large" 
+                data-auth-url="https://maxpower-t7lp.onrender.com/verify" 
+                data-request-access="write">
+            </script>
+        '''
+    return 'Добро пожаловать! <a href="/logout">Выйти</a>'
 
 
 # Функция для преобразования тикеров
@@ -175,6 +139,16 @@ def get_option_data(ticker, expirations):
 # Лейаут для объединенной страницы
 app.layout = html.Div([
     html.H1("Max Power", style={'textAlign': 'center'}),
+    html.Div([
+        html.Iframe(
+            src="https://telegram.org/js/telegram-widget.js?22"
+                f"&data-telegram-login=MaxPowerBot"
+                "&data-size=large"
+                "&data-auth-url=https://maxpower-t7lp.onrender.com/verify"
+                "&data-request-access=write",
+            style={"border": "none", "height": "50px"}
+        )
+    ], style={"textAlign": "center", "marginBottom": "20px"}),
 
     html.Div([
         html.Label("Введите тикер актива:"),
@@ -840,4 +814,5 @@ def update_price_chart_simplified(ticker):
 # Запуск приложения
 if __name__ == '__main__':
     app.run_server(host="0.0.0.0", port=8080)
+
 
