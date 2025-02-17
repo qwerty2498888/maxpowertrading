@@ -10,6 +10,12 @@ import hashlib
 import hmac
 import requests
 
+# Импортируем Flask-Session с обработкой ошибки
+try:
+    from flask_session import Session
+except ImportError:
+    print("Flask-Session не установлен. Установите командой: pip install flask-session")
+
 # Настройки Telegram API
 TOKEN = "8068526221:AAF2pw4c00-tWobTC-GJ6TtSE_sLLRKt8_U"
 CHANNEL_ID = "@Trade_Channel"  # Замените на ваш канал
@@ -18,8 +24,13 @@ CHANNEL_ID = "@Trade_Channel"  # Замените на ваш канал
 server = Flask(__name__)
 server.secret_key = "секретный_ключ_для_сессий"
 
+# Настраиваем сессии (храним на сервере)
+server.config["SESSION_TYPE"] = "filesystem"
+Session(server)
+
 # Создаём Dash-приложение
 app = dash.Dash(__name__, suppress_callback_exceptions=True, server=server)
+
 
 # Функция для проверки подписи Telegram
 def check_telegram_auth(auth_data):
@@ -29,6 +40,7 @@ def check_telegram_auth(auth_data):
     expected_hash = hmac.new(secret_key, check_string.encode(), hashlib.sha256).hexdigest()
     return expected_hash == auth_data["hash"]
 
+
 # Функция проверки, является ли пользователь участником канала
 def is_member(user_id):
     """ Проверяет, состоит ли пользователь в закрытом канале """
@@ -36,25 +48,32 @@ def is_member(user_id):
     response = requests.get(url, params={"chat_id": CHANNEL_ID, "user_id": user_id}).json()
     return response.get("ok") and response.get("result", {}).get("status") in ["member", "administrator", "creator"]
 
+
 # Маршрут для авторизации через Telegram
 @server.route("/verify")
 def verify():
     auth_data = request.args.to_dict()
+
+    if not auth_data:
+        return "Ошибка: Telegram не передал данные!", 400  # Отладочное сообщение
+
     if not check_telegram_auth(auth_data):
-        return "Ошибка авторизации", 403
+        return "Ошибка авторизации Telegram", 403
 
-    user_id = int(auth_data.get("id", 0))  # Преобразуем в число
+    user_id = int(auth_data.get("id", 0))
     if not is_member(user_id):
-        return "Доступ запрещен", 403
+        return "Доступ запрещён: вы не подписаны на канал!", 403
 
-    session["user_id"] = user_id  # Сохраняем ID пользователя в сессии
+    session["user_id"] = user_id
     return redirect(url_for("index"))
+
 
 # Маршрут выхода
 @server.route("/logout")
 def logout():
     session.pop("user_id", None)
     return redirect(url_for("index"))
+
 
 # Главная страница
 @server.route("/")
@@ -79,19 +98,18 @@ def normalize_ticker(ticker):
     }
     return index_map.get(ticker.upper(), ticker.upper())
 
+
 # Функция получения данных по опционам
 def get_option_data(ticker, expirations):
-    ticker = normalize_ticker(ticker)  # Нормализуем тикер
+    ticker = normalize_ticker(ticker)
     try:
         stock = yf.Ticker(ticker)
         available_dates = stock.options
-        print(f"Доступные даты экспирации для {ticker}: {available_dates}")  # Отладочное сообщение
     except Exception as e:
         print(f"Ошибка загрузки данных {ticker}: {e}")
         return None, [], None, None
 
     if not available_dates:
-        print(f"Нет доступных дат экспирации для {ticker}")  # Отладочное сообщение
         return None, [], None, None
 
     if not expirations:
@@ -113,7 +131,6 @@ def get_option_data(ticker, expirations):
             print(f"Ошибка загрузки данных для {expiration}: {e}")
 
     if not all_options_data:
-        print("Нет данных по опционам")  # Отладочное сообщение
         return None, available_dates, None, None
 
     combined_data = pd.concat(all_options_data).groupby("strike", as_index=False).sum()
@@ -136,19 +153,34 @@ def get_option_data(ticker, expirations):
 
     return combined_data, available_dates, spot_price, max_ag_strike
 
-# Лейаут для объединенной страницы
+
+# Лейаут для Dash-приложения
 app.layout = html.Div([
     html.H1("Max Power", style={'textAlign': 'center'}),
+
     html.Div([
-        html.Iframe(
-            src="https://telegram.org/js/telegram-widget.js?22"
-                f"&data-telegram-login=MaxPowerBot"
-                "&data-size=large"
-                "&data-auth-url=https://maxpower-t7lp.onrender.com/verify"
-                "&data-request-access=write",
-            style={"border": "none", "height": "50px"}
-        )
-    ], style={"textAlign": "center", "marginBottom": "20px"}),
+        html.Script(src="https://telegram.org/js/telegram-widget.js?22"),
+        html.Div(id="telegram-login-container", style={"textAlign": "center", "marginBottom": "20px"}),
+        html.Script("""
+            document.addEventListener("DOMContentLoaded", function() {
+                let container = document.getElementById('telegram-login-container');
+                container.innerHTML = '<script async src="https://telegram.org/js/telegram-widget.js?22" '
+                    + 'data-telegram-login="MaxPowerBot" '
+                    + 'data-size="large" '
+                    + 'data-auth-url="https://maxpower-t7lp.onrender.com/verify" '
+                    + 'data-request-access="write"></script>';
+            });
+        """, type="text/javascript"),
+    ]),
+
+    html.Div([
+        html.Label("Введите тикер актива:"),
+        dcc.Input(id='ticker-input', type='text', value='SPX', className='dash-input'),
+    ], className='dash-container'),
+
+    dcc.Graph(id='options-chart', style={'height': '900px'}, config={'displayModeBar': False}),
+
+
 
     html.Div([
         html.Label("Введите тикер актива:"),
