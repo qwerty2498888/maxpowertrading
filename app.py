@@ -5,85 +5,12 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 import pandas as pd
 from datetime import datetime, timedelta
-import sqlite3
-import requests
-from flask import Flask, request, redirect, session
-import hashlib
-import hmac
 
-# Инициализация Flask и Dash
-server = Flask(__name__)
-server.secret_key = 'your_secret_key'  # Секретный ключ для сессий
-app = dash.Dash(__name__, server=server, url_base_pathname='/')
+# Инициализация Dash приложения
+app = dash.Dash(__name__, suppress_callback_exceptions=True)
 
-# Токен бота и chat_id канала
-BOT_TOKEN = '8068526221:AAF2pw4c00-tWobTC-GJ6TtSE_sLLRKt8_U'
-CHANNEL_ID = '-1001373652914'
-
-# Инициализация базы данных
-def init_db():
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS users (chat_id TEXT PRIMARY KEY)''')
-    conn.commit()
-    conn.close()
-
-init_db()
-
-# Функция для проверки участника канала
-def is_user_in_channel(chat_id):
-    url = f'https://api.telegram.org/bot{BOT_TOKEN}/getChatMember'
-    params = {'chat_id': CHANNEL_ID, 'user_id': chat_id}
-    response = requests.get(url, params=params).json()
-    return response.get('result', {}).get('status') in ['member', 'administrator', 'creator']
-
-# Страница входа
-@server.route('/login')
-def login():
-    return '''
-        <html>
-        <head>
-            <title>Вход через Telegram</title>
-        </head>
-        <body>
-            <h2>Войти через Telegram</h2>
-            <script async src="https://telegram.org/js/telegram-widget.js?7"
-                data-telegram-login="TTCTTC_bot"
-                data-size="large"
-                data-auth-url="/auth"
-                data-request-access="write">
-            </script>
-        </body>
-        </html>
-    '''
-
-
-# Проверка доступа к главной странице
-@server.route('/')
-def index():
-    chat_id = session.get('chat_id')
-    if chat_id:
-        conn = sqlite3.connect('users.db')
-        c = conn.cursor()
-        c.execute('SELECT chat_id FROM users WHERE chat_id = ?', (chat_id,))
-        if c.fetchone():
-            return app.index()
-    return redirect('/login')
-
-# Удаление chat_id при выходе из канала
-@server.route('/webhook', methods=['POST'])
-def webhook():
-    update = request.json
-    if 'my_chat_member' in update:
-        chat_id = update['my_chat_member']['from']['id']
-        new_status = update['my_chat_member']['new_chat_member']['status']
-        if new_status == 'left' or new_status == 'kicked':
-            conn = sqlite3.connect('users.db')
-            c = conn.cursor()
-            c.execute('DELETE FROM users WHERE chat_id = ?', (chat_id,))
-            conn.commit()
-            conn.close()
-    return 'ok'
+# Список разрешенных пользователей Telegram
+ALLOWED_USERS = ["@MaxPower212", "Alabama21212"]
 
 # Функция для преобразования тикеров
 def normalize_ticker(ticker):
@@ -152,49 +79,73 @@ def get_option_data(ticker, expirations):
 
 # Лейаут для объединенной страницы
 app.layout = html.Div([
-    html.H1("Max Power", style={'textAlign': 'center'}),
-
     html.Div([
-        html.Label("Введите тикер актива:"),
-        dcc.Input(id='ticker-input', type='text', value='SPX', className='dash-input'),
-    ], className='dash-container'),
+        html.Label("Введите ваше имя пользователя Telegram:"),
+        dcc.Input(id='username-input', type='text', placeholder='@username', className='dash-input'),
+        html.Button('Проверить', id='submit-button', n_clicks=0, className='dash-button'),
+        html.Div(id='access-message', style={'margin-top': '10px'})
+    ], className='dash-container', id='access-control'),
 
-    html.Div([
-        html.Label("Выберите даты экспирации:"),
-        dcc.Dropdown(id='date-dropdown', multi=True, className='dash-dropdown'),
-    ], className='dash-container'),
+    html.Div(id='main-content', style={'display': 'none'}, children=[
+        html.H1("Max Power", style={'textAlign': 'center'}),
 
-    html.Div([
-        html.Label("Выберите параметры:"),
         html.Div([
-            html.Button("Net GEX", id="btn-net-gex", className="parameter-button"),
-            html.Button("AG", id="btn-ag", className="parameter-button"),
-            html.Button("Call OI", id="btn-call-oi", className="parameter-button"),
-            html.Button("Put OI", id="btn-put-oi", className="parameter-button"),
-            html.Button("Call Volume", id="btn-call-vol", className="parameter-button"),
-            html.Button("Put Volume", id="btn-put-vol", className="parameter-button"),
-        ], className="button-container"),
-    ], className='dash-container'),
+            html.Label("Введите тикер актива:"),
+            dcc.Input(id='ticker-input', type='text', value='SPX', className='dash-input'),
+        ], className='dash-container'),
 
-    dcc.Store(id='selected-params', data=['Net GEX']),  # Храним нажатые кнопки
-    dcc.Store(id='options-data-store'),  # Хранение данных для Charts
+        html.Div([
+            html.Label("Выберите даты экспирации:"),
+            dcc.Dropdown(id='date-dropdown', multi=True, className='dash-dropdown'),
+        ], className='dash-container'),
 
-    dcc.Graph(
-        id='options-chart',
-        style={'height': '900px'},  # Высота верхнего графика (оставляем как есть)
-        config={'displayModeBar': False}  # Отключаем панель инструментов
-    ),
-    dcc.Graph(
-        id='price-chart',
-        style={'height': '950px'},  # Увеличиваем высоту нижнего графика
-        config={'displayModeBar': False}  # Отключаем панель инструментов
-    ),
-    dcc.Graph(
-        id='price-chart-simplified',  # Новый график
-        style={'height': '950px'},  # Увеличиваем высоту нового графика
-        config={'displayModeBar': False}  # Отключаем панель инструментов
-    )
+        html.Div([
+            html.Label("Выберите параметры:"),
+            html.Div([
+                html.Button("Net GEX", id="btn-net-gex", className="parameter-button"),
+                html.Button("AG", id="btn-ag", className="parameter-button"),
+                html.Button("Call OI", id="btn-call-oi", className="parameter-button"),
+                html.Button("Put OI", id="btn-put-oi", className="parameter-button"),
+                html.Button("Call Volume", id="btn-call-vol", className="parameter-button"),
+                html.Button("Put Volume", id="btn-put-vol", className="parameter-button"),
+            ], className="button-container"),
+        ], className='dash-container'),
+
+        dcc.Store(id='selected-params', data=['Net GEX']),  # Храним нажатые кнопки
+        dcc.Store(id='options-data-store'),  # Хранение данных для Charts
+
+        dcc.Graph(
+            id='options-chart',
+            style={'height': '900px'},  # Высота верхнего графика (оставляем как есть)
+            config={'displayModeBar': False}  # Отключаем панель инструментов
+        ),
+        dcc.Graph(
+            id='price-chart',
+            style={'height': '950px'},  # Увеличиваем высоту нижнего графика
+            config={'displayModeBar': False}  # Отключаем панель инструментов
+        ),
+        dcc.Graph(
+            id='price-chart-simplified',  # Новый график
+            style={'height': '950px'},  # Увеличиваем высоту нового графика
+            config={'displayModeBar': False}  # Отключаем панель инструментов
+        )
+    ])
 ])
+
+# Callback для проверки имени пользователя
+@app.callback(
+    [Output('access-message', 'children'),
+     Output('main-content', 'style')],
+    [Input('submit-button', 'n_clicks')],
+    [State('username-input', 'value')]
+)
+def check_username(n_clicks, username):
+    if n_clicks > 0:
+        if username in ALLOWED_USERS:
+            return "Доступ разрешен.", {'display': 'block'}
+        else:
+            return "Доступ запрещен.", {'display': 'none'}
+    return "", {'display': 'none'}
 
 # Callback для обновления списка дат
 @app.callback(
@@ -420,16 +371,13 @@ def update_options_chart(ticker, dates, selected_params):
             tickmode='array',  # Используем массив значений для оси X
             tickvals=options_data['strike'].tolist(),  # Реальные значения страйков
             tickformat='d',  # Округление страйков до целых чисел
-            fixedrange=True,  # Отключаем масштабирование по оси X
         ),
-        yaxis=dict(title="Net GEX", side="left", showgrid=False, zeroline=False, fixedrange=True),  # Отключаем масштабирование по оси Y
-        yaxis2=dict(title="", side="right", overlaying="y", showgrid=False, zeroline=False, fixedrange=True),  # Отключаем масштабирование по оси Y2
+        yaxis=dict(title="Net GEX", side="left", showgrid=False, zeroline=False),
+        yaxis2=dict(title="", side="right", overlaying="y", showgrid=False, zeroline=False),
         title="" + ticker,
         plot_bgcolor='#1e1e1e',
         paper_bgcolor='#1e1e1e',
         font=dict(color='white'),
-        hovermode='x unified',  # Включаем всплывающие подсказки
-        dragmode=False,  # Отключаем перемещение и масштабирование
     )
 
     # Добавление водяного знака "Max Power"
@@ -640,21 +588,21 @@ def update_price_chart(ticker):
             showgrid=True,
             gridcolor='rgba(128, 128, 128, 0.2)',
             rangeslider=dict(visible=False),
-            autorange=True,
-            fixedrange=True,  # Отключаем масштабирование по оси X
+            autorange=True,  # Автоматическое расширение оси X
+            fixedrange=False,  # Разрешаем динамическое изменение диапазона
         ),
         yaxis=dict(
             title="Цена",
             showgrid=True,
             gridcolor='rgba(128, 128, 128, 0.2)',
-            fixedrange=True  # Отключаем масштабирование по оси Y
+            fixedrange=False
         ),
         plot_bgcolor='#1e1e1e',
         paper_bgcolor='#1e1e1e',
         font=dict(color='white'),
-        hovermode='x unified',  # Включаем всплывающие подсказки
-        dragmode=False,  # Отключаем перемещение и масштабирование
+        hovermode='x unified',
         margin=dict(l=50, r=50, b=50, t=50),
+        dragmode='pan'
     )
 
     # Добавление водяного знака "Max Power" на нижний график
@@ -669,6 +617,9 @@ def update_price_chart(ticker):
 
     return fig
 
+# Callback для обновления нового графика цены
+# Callback для обновления нового графика цены
+# Callback для обновления нового графика цены
 # Callback для обновления нового графика цены
 @app.callback(
     Output('price-chart-simplified', 'figure'),
@@ -786,21 +737,21 @@ def update_price_chart_simplified(ticker):
             showgrid=True,
             gridcolor='rgba(128, 128, 128, 0.2)',
             rangeslider=dict(visible=False),
-            autorange=True,
-            fixedrange=True,  # Отключаем масштабирование по оси X
+            autorange=True,  # Автоматическое расширение оси X
+            fixedrange=False,  # Разрешаем динамическое изменение диапазона
         ),
         yaxis=dict(
             title="Цена",
             showgrid=True,
             gridcolor='rgba(128, 128, 128, 0.2)',
-            fixedrange=True  # Отключаем масштабирование по оси Y
+            fixedrange=False
         ),
         plot_bgcolor='#1e1e1e',
         paper_bgcolor='#1e1e1e',
         font=dict(color='white'),
-        hovermode='x unified',  # Включаем всплывающие подсказки
-        dragmode=False,  # Отключаем перемещение и масштабирование
+        hovermode='x unified',
         margin=dict(l=50, r=50, b=50, t=50),
+        dragmode='pan'
     )
 
     # Добавление водяного знака "Max Power" на новый график
