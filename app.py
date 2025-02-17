@@ -5,90 +5,87 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 import pandas as pd
 from datetime import datetime, timedelta
-from flask import Flask, request, session, redirect, url_for
-import hashlib
-import hmac
+import sqlite3
 import requests
+from flask import Flask, request, redirect, session
 
-# Импортируем Flask-Session с обработкой ошибки
-try:
-    from flask_session import Session
-except ImportError:
-    print("Flask-Session не установлен. Установите командой: pip install flask-session")
-
-# Настройки Telegram API
-TOKEN = "8068526221:AAF2pw4c00-tWobTC-GJ6TtSE_sLLRKt8_U"
-CHANNEL_ID = "@Trade_Channel"  # Замените на ваш канал
-
-# Создаём Flask сервер
+# Инициализация Flask и Dash
 server = Flask(__name__)
-server.secret_key = "секретный_ключ_для_сессий"
+server.secret_key = 'your_secret_key'  # Секретный ключ для сессий
+app = dash.Dash(__name__, server=server, url_base_pathname='/')
 
-# Настраиваем сессии (храним на сервере)
-server.config["SESSION_TYPE"] = "filesystem"
-Session(server)
+# Токен бота и chat_id канала
+BOT_TOKEN = '8068526221:AAF2pw4c00-tWobTC-GJ6TtSE_sLLRKt8_U'
+CHANNEL_ID = '-1001373652914'
 
-# Создаём Dash-приложение
-app = dash.Dash(__name__, suppress_callback_exceptions=True, server=server)
+# Инициализация базы данных
+def init_db():
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS users (chat_id TEXT PRIMARY KEY)''')
+    conn.commit()
+    conn.close()
 
+init_db()
 
-# Функция для проверки подписи Telegram
-def check_telegram_auth(auth_data):
-    """ Проверка подписи Telegram """
-    check_string = "\n".join([f"{k}={v}" for k, v in sorted(auth_data.items()) if k != "hash"])
-    secret_key = hashlib.sha256(TOKEN.encode()).digest()  # Исправлено
-    expected_hash = hmac.new(secret_key, check_string.encode(), hashlib.sha256).hexdigest()
-    return expected_hash == auth_data["hash"]
+# Функция для проверки участника канала
+def is_user_in_channel(chat_id):
+    url = f'https://api.telegram.org/bot{BOT_TOKEN}/getChatMember'
+    params = {'chat_id': CHANNEL_ID, 'user_id': chat_id}
+    response = requests.get(url, params=params).json()
+    return response.get('result', {}).get('status') in ['member', 'administrator', 'creator']
 
+# Страница входа
+@server.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        chat_id = request.form['chat_id']
+        if is_user_in_channel(chat_id):
+            conn = sqlite3.connect('users.db')
+            c = conn.cursor()
+            c.execute('INSERT OR IGNORE INTO users (chat_id) VALUES (?)', (chat_id,))
+            conn.commit()
+            conn.close()
+            session['chat_id'] = chat_id
+            return redirect('/')
+        else:
+            return "Вы не являетесь участником канала."
+    return '''
+        <form method="post">
+            Telegram Chat ID: <input type="text" name="chat_id">
+            <input type="submit" value="Войти">
+        </form>
+    '''
 
-# Функция проверки, является ли пользователь участником канала
-def is_member(user_id):
-    """ Проверяет, состоит ли пользователь в закрытом канале """
-    url = f"https://api.telegram.org/bot{TOKEN}/getChatMember"
-    response = requests.get(url, params={"chat_id": CHANNEL_ID, "user_id": user_id}).json()
-    return response.get("ok") and response.get("result", {}).get("status") in ["member", "administrator", "creator"]
-
-
-# Маршрут для авторизации через Telegram
-@server.route("/verify")
-def verify():
-    auth_data = request.args.to_dict()
-
-    if not auth_data:
-        return "Ошибка: Telegram не передал данные!", 400  # Отладочное сообщение
-
-    if not check_telegram_auth(auth_data):
-        return "Ошибка авторизации Telegram", 403
-
-    user_id = int(auth_data.get("id", 0))
-    if not is_member(user_id):
-        return "Доступ запрещён: вы не подписаны на канал!", 403
-
-    session["user_id"] = user_id
-    return redirect(url_for("index"))
-
-
-# Маршрут выхода
-@server.route("/logout")
-def logout():
-    session.pop("user_id", None)
-    return redirect(url_for("index"))
-
-
-# Главная страница
-@server.route("/")
+# Проверка доступа к главной странице
+@server.route('/')
 def index():
-    if "user_id" not in session:
-        return '''
-            <script async src="https://telegram.org/js/telegram-widget.js?22" 
-                data-telegram-login="MaxPowerBot" 
-                data-size="large" 
-                data-auth-url="https://maxpower-t7lp.onrender.com/verify" 
-                data-request-access="write">
-            </script>
-        '''
-    return 'Добро пожаловать! <a href="/logout">Выйти</a>'
+    chat_id = session.get('chat_id')
+    if chat_id:
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute('SELECT chat_id FROM users WHERE chat_id = ?', (chat_id,))
+        if c.fetchone():
+            return app.index()
+        else:
+            return redirect('/login')
+    else:
+        return redirect('/login')
 
+# Удаление chat_id при выходе из канала
+@server.route('/webhook', methods=['POST'])
+def webhook():
+    update = request.json
+    if 'my_chat_member' in update:
+        chat_id = update['my_chat_member']['from']['id']
+        new_status = update['my_chat_member']['new_chat_member']['status']
+        if new_status == 'left' or new_status == 'kicked':
+            conn = sqlite3.connect('users.db')
+            c = conn.cursor()
+            c.execute('DELETE FROM users WHERE chat_id = ?', (chat_id,))
+            conn.commit()
+            conn.close()
+    return 'ok'
 
 # Функция для преобразования тикеров
 def normalize_ticker(ticker):
@@ -98,18 +95,19 @@ def normalize_ticker(ticker):
     }
     return index_map.get(ticker.upper(), ticker.upper())
 
-
 # Функция получения данных по опционам
 def get_option_data(ticker, expirations):
-    ticker = normalize_ticker(ticker)
+    ticker = normalize_ticker(ticker)  # Нормализуем тикер
     try:
         stock = yf.Ticker(ticker)
         available_dates = stock.options
+        print(f"Доступные даты экспирации для {ticker}: {available_dates}")  # Отладочное сообщение
     except Exception as e:
         print(f"Ошибка загрузки данных {ticker}: {e}")
         return None, [], None, None
 
     if not available_dates:
+        print(f"Нет доступных дат экспирации для {ticker}")  # Отладочное сообщение
         return None, [], None, None
 
     if not expirations:
@@ -131,6 +129,7 @@ def get_option_data(ticker, expirations):
             print(f"Ошибка загрузки данных для {expiration}: {e}")
 
     if not all_options_data:
+        print("Нет данных по опционам")  # Отладочное сообщение
         return None, available_dates, None, None
 
     combined_data = pd.concat(all_options_data).groupby("strike", as_index=False).sum()
@@ -153,34 +152,9 @@ def get_option_data(ticker, expirations):
 
     return combined_data, available_dates, spot_price, max_ag_strike
 
-
-# Лейаут для Dash-приложения
+# Лейаут для объединенной страницы
 app.layout = html.Div([
     html.H1("Max Power", style={'textAlign': 'center'}),
-
-    html.Div([
-        html.Script(src="https://telegram.org/js/telegram-widget.js?22"),
-        html.Div(id="telegram-login-container", style={"textAlign": "center", "marginBottom": "20px"}),
-        html.Script("""
-            document.addEventListener("DOMContentLoaded", function() {
-                let container = document.getElementById('telegram-login-container');
-                container.innerHTML = '<script async src="https://telegram.org/js/telegram-widget.js?22" '
-                    + 'data-telegram-login="MaxPowerBot" '
-                    + 'data-size="large" '
-                    + 'data-auth-url="https://maxpower-t7lp.onrender.com/verify" '
-                    + 'data-request-access="write"></script>';
-            });
-        """, type="text/javascript"),
-    ]),
-
-    html.Div([
-        html.Label("Введите тикер актива:"),
-        dcc.Input(id='ticker-input', type='text', value='SPX', className='dash-input'),
-    ], className='dash-container'),
-
-    dcc.Graph(id='options-chart', style={'height': '900px'}, config={'displayModeBar': False}),
-
-
 
     html.Div([
         html.Label("Введите тикер актива:"),
@@ -846,5 +820,4 @@ def update_price_chart_simplified(ticker):
 # Запуск приложения
 if __name__ == '__main__':
     app.run_server(host="0.0.0.0", port=8080)
-
 
