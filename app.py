@@ -451,10 +451,10 @@ def update_price_chart(ticker):
     options_data, _, spot_price, max_ag_strike = get_option_data(ticker, [])
 
     # Определение диапазона для индексов и акций
-    if ticker in ["^SPX", "^NDX", "^RUT", "^DJI"]:
+    if ticker in ["^SPX", "^NDX", "^RUT", "^DJI", "SPY", "QQQ", "IWM"]:
         price_range = 0.01  # 1.5% для индексов
     else:
-        price_range = 0.1  # 30% для акций
+        price_range = 0.05  # 30% для акций
 
     if spot_price:
         left_limit = spot_price - (spot_price * price_range)
@@ -682,14 +682,14 @@ def update_price_chart_simplified(ticker):
         return go.Figure()
 
     # Определяем диапазон для индексов и акций
-    if ticker in ["^SPX", "^NDX", "^RUT", "^DJI"]:
+    if ticker in ["^SPX", "^NDX", "^RUT", "^DJI", "SPY", "QQQ", "IWM"]:
         price_range = 0.01  # 1.5% для индексов
         resistance_zone_lower_percent = -0.0005  # -0.05%
         resistance_zone_upper_percent = 0.0015  # +0.15%
         support_zone_lower_percent = -0.0015  # -0.15%
         support_zone_upper_percent = 0.0005  # +0.05%
     else:
-        price_range = 0.1  # 30% для акций
+        price_range = 0.05  # 30% для акций
         resistance_zone_lower_percent = -0.002  # -0.2%
         resistance_zone_upper_percent = 0.0035  # +0.35%
         support_zone_lower_percent = -0.0035  # -0.35%
