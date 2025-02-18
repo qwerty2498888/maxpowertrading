@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
 
 # Список разрешенных пользователей Telegram
-ALLOWED_USERS = ["@MaxPower212", "212", "@AnotherUser"]
+ALLOWED_USERS = ["@MaxPower212", "212", "@AnotherUser", "@cronoq", "@avg1987", "@VictorIziumschii", " @robertcz84", "@tatifad", "@Andrey_Maryev", "@Stepanov_SV", "@martin5711", ""]
 
 # Функция для преобразования тикеров
 def normalize_ticker(ticker):
@@ -271,11 +271,11 @@ def update_options_chart(ticker, dates, selected_params):
 
     # Определение диапазона для индексов и акций
     if ticker in ["^SPX", "^NDX", "^RUT", "^Dia"]:
-        price_range = 0.013  # 1.5% для индексов
+        price_range = 0.010  # 1.5% для индексов
     elif ticker in ["SPY", "QQQ", "DIA", "XSP", "IWM"]:
         price_range = 0.04  # 5% для ETF (SPY, QQQ, DIA, XSP, IWM)
     else:
-        price_range = 0.15  # 30% для акций
+        price_range = 0.30  # 30% для акций
 
     if spot_price:
         left_limit = spot_price - (spot_price * price_range)
@@ -451,10 +451,8 @@ def update_price_chart(ticker):
     options_data, _, spot_price, max_ag_strike = get_option_data(ticker, [])
 
     # Определение диапазона для индексов и акций
-    if ticker in ["^SPX", "^NDX", "^RUT", "^Dia"]:
-        price_range = 0.013  # 1.5% для индексов
-    elif ticker in ["SPY", "QQQ", "DIA", "XSP", "IWM"]:
-        price_range = 0.013  # 5% для ETF (SPY, QQQ, DIA, XSP, IWM)
+    if ticker in ["^SPX", "^NDX", "^RUT", "^DJI"]:
+        price_range = 0.01  # 1.5% для индексов
     else:
         price_range = 0.1  # 30% для акций
 
@@ -691,7 +689,7 @@ def update_price_chart_simplified(ticker):
         support_zone_lower_percent = -0.0015  # -0.15%
         support_zone_upper_percent = 0.0005  # +0.05%
     else:
-        price_range = 0.07  # 30% для акций
+        price_range = 0.1  # 30% для акций
         resistance_zone_lower_percent = -0.002  # -0.2%
         resistance_zone_upper_percent = 0.0035  # +0.35%
         support_zone_lower_percent = -0.0035  # -0.35%
