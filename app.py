@@ -682,8 +682,14 @@ def update_price_chart_simplified(ticker):
         return go.Figure()
 
     # Определяем диапазон для индексов и акций
-    if ticker in ["^SPX", "^NDX", "^RUT", "^DJI", "SPY", "QQQ", "IWM"]:
+    if ticker in ["^SPX", "^NDX", "^RUT", "^DJI"]:
         price_range = 0.01  # 1.5% для индексов
+        resistance_zone_lower_percent = -0.0005  # -0.05%
+        resistance_zone_upper_percent = 0.0015  # +0.15%
+        support_zone_lower_percent = -0.0015  # -0.15%
+        support_zone_upper_percent = 0.0005  # +0.05%
+    elif ticker in ["SPY", "QQQ", "DIA", "XSP", "IWM"]:
+        price_range = 0.02  # 5% для ETF (SPY, QQQ, DIA, XSP, IWM)
         resistance_zone_lower_percent = -0.0005  # -0.05%
         resistance_zone_upper_percent = 0.0015  # +0.15%
         support_zone_lower_percent = -0.0015  # -0.15%
