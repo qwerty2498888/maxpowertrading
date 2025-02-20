@@ -1,0 +1,15 @@
+[10116:12476:0220/141452.276:INFO:chrome_browser_cloud_management_controller.cc(196)] No machine level policy manager exists.
+[2036:13200:0220/141452.643:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[2036:13200:0220/141452.648:ERROR:direct_composition_support.cc(1070)] QueryInterface to IDCompositionDevice4 failed: Интерфейс не поддерживается (0x80004002)
+[10116:12476:0220/141459.665:INFO:CONSOLE(1)] "Fetching data from cdn", source: https://www.cboe.com/_cache/js/333c14dddcfa6d82a973e5041a849685.js (1)
+[10116:12476:0220/141459.726:INFO:CONSOLE(1)] "Fetching data from cdn", source: https://www.cboe.com/_cache/js/333c14dddcfa6d82a973e5041a849685.js (1)
+[10116:12476:0220/141504.139:INFO:CONSOLE(1)] "Fetching data from cdn", source: https://www.cboe.com/_cache/js/333c14dddcfa6d82a973e5041a849685.js (1)
+[10116:12476:0220/141504.142:INFO:CONSOLE(1)] "Fetching data from cdn", source: https://www.cboe.com/_cache/js/333c14dddcfa6d82a973e5041a849685.js (1)
+[10116:12476:0220/141504.157:INFO:CONSOLE(1)] "Fetching data from cdn", source: https://www.cboe.com/_cache/js/333c14dddcfa6d82a973e5041a849685.js (1)
+[10116:12476:0220/141504.158:INFO:CONSOLE(1)] "Fetching data from cdn", source: https://www.cboe.com/_cache/js/333c14dddcfa6d82a973e5041a849685.js (1)
+[10116:12476:0220/141504.160:INFO:CONSOLE(1)] "Fetching data from cdn", source: https://www.cboe.com/_cache/js/333c14dddcfa6d82a973e5041a849685.js (1)
+[10116:12476:0220/141504.306:INFO:CONSOLE(1)] "Fetching data from cdn", source: https://www.cboe.com/_cache/js/333c14dddcfa6d82a973e5041a849685.js (1)
+[10116:12476:0220/141504.307:INFO:CONSOLE(1)] "Fetching data from cdn", source: https://www.cboe.com/_cache/js/333c14dddcfa6d82a973e5041a849685.js (1)
+[10116:12476:0220/141504.355:INFO:CONSOLE(1)] "Fetching data from cdn", source: https://www.cboe.com/_cache/js/333c14dddcfa6d82a973e5041a849685.js (1)
+[18872:1240:0220/141550.107:WARNING:spdy_session.cc(2980)] Received HEADERS for invalid stream 3
+[18872:1240:0220/141550.119:WARNING:spdy_session.cc(2980)] Received HEADERS for invalid stream 17
