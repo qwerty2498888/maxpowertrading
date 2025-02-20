@@ -447,6 +447,11 @@ def update_price_chart(ticker):
     if data.empty:
         return go.Figure()
 
+    # Рассчитываем VWAP
+    data['CumulativeVolume'] = data['Volume'].cumsum()
+    data['CumulativePV'] = (data['Volume'] * (data['High'] + data['Low'] + data['Close']) / 3).cumsum()
+    data['VWAP'] = data['CumulativePV'] / data['CumulativeVolume']
+
     # Получаем данные по опционам для расчета AG, P1, N1, Call Vol и Put Vol
     options_data, _, spot_price, max_ag_strike = get_option_data(ticker, [])
 
@@ -549,7 +554,7 @@ def update_price_chart(ticker):
         name="Candlesticks"
     ))
 
-    # Добавляем горизонтальную линию уровня цены, где достигается максимальное значение P1
+      # Добавляем горизонтальную линию уровня цены, где достигается максимальное значение P1
     if max_p1_strike is not None:
         fig.add_trace(go.Scatter(
             x=[data.index[0], data.index[-1]],  # От начала до конца графика
@@ -654,9 +659,6 @@ def update_price_chart(ticker):
     return fig
 
 # Callback для обновления нового графика цены
-# Callback для обновления нового графика цены
-# Callback для обновления нового графика цены
-# Callback для обновления нового графика цены
 @app.callback(
     Output('price-chart-simplified', 'figure'),
     [Input('ticker-input', 'value')]
@@ -674,6 +676,11 @@ def update_price_chart_simplified(ticker):
 
     if data.empty:
         return go.Figure()
+
+    # Рассчитываем VWAP
+    data['CumulativeVolume'] = data['Volume'].cumsum()
+    data['CumulativePV'] = (data['Volume'] * (data['High'] + data['Low'] + data['Close']) / 3).cumsum()
+    data['VWAP'] = data['CumulativePV'] / data['CumulativeVolume']
 
     # Получаем данные по опционам для расчета AG, Call Vol и Put Vol
     options_data, _, spot_price, _ = get_option_data(ticker, [])
@@ -755,6 +762,15 @@ def update_price_chart_simplified(ticker):
         low=data['Low'],
         close=data['Close'],
         name="Candlesticks"
+    ))
+
+    # Добавляем линию VWAP
+    fig.add_trace(go.Scatter(
+        x=data.index,
+        y=data['VWAP'],
+        mode='lines',
+        line=dict(color='#00ffcc', width=2),
+        name='VWAP'
     ))
 
     # Добавляем зоны
