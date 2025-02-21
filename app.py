@@ -5,9 +5,16 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 import pandas as pd
 from datetime import datetime, timedelta
+from flask_caching import Cache
 
 # Инициализация Dash приложения
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
+
+# Настройка кеширования
+cache = Cache(app.server, config={
+    'CACHE_TYPE': 'simple',  # Используем простой тип кеширования (в памяти)
+    'CACHE_DEFAULT_TIMEOUT': 300  # Время жизни кеша в секундах (5 минут)
+})
 
 # Список разрешенных пользователей Telegram
 ALLOWED_USERS = ["@MaxPower212", "212", "@AnotherUser", "@cronoq", "@avg1987", "@VictorIziumschii", " @robertcz84", "@tatifad", "@Andrey_Maryev", "@Stepanov_SV", "@martin5711", "@dkirhlarov", "@o_stmn", "@Jus_Urfin", "@AlexandrM_1976", "@Natalijapan", "@IgorM215", "@OchirMan08", "@bayun_333", "@paveldems", "@Lbanki", "@artjomeif", "@Nikitin_Kirill8", "@impulsiveness", "@ViktorAlenchikov", "@PavelZam", "@ruslan_rms", "@Dmitry_BA", "@kserginfo", "@lepsagog", "@eugeneenovikov", "@KyotoDzen", "@vardb", "@Alex_Investment_com", "@STAR_Serg", "@Intrigo7", "@sergeewpavel", "@Yan_yog", "@yuryleon", "@sani821305", "@bagh0lder", "@avgust_avgustt", "@IFin82", "@niqo5586", "Markokorp", "@d200984", "@Zhenya_jons", "@Chili_palmer", "@vadim_gr77", "375291767178", "79122476671", "@By_Debor", "@NoName999887", "manival515", "@Valerij_Cy", "@djek70", "@isaevmike", "@ilapirova", "Sergey_Bill", "@rra3483", "@bezzubcev", "@armen_lalaian", "@olegstamatov", "@LeonidShoggot", "@afonin900", "@Banderas111", "@DmitriiPetrenko", "@hyperil0", "@ViacheslavPar", "@Ramilguns", "@andreymiamimoscow", "Bapik_t", "436642455545", "@gyuszijaro", "@helenauvarova", "@Rewire", "@kommm_ko", "@DenisTrubnik", "@MdEYE", "@garik_bale", "@KJurginiene", "@svvalkiria", "@kiloperza", "@MakenzyM", "@YLT777", "@sunfire_08", "@igorartem", "@StepanenkoP", "@Sea_Master_07", "380958445987", "@Alex_Grii", "@Yuriy_Kutafin", "@MazurenkoYaroslav", "@gvejalis", "@di_floww", "@dokulakov", "@travelpro5", "@yrchik91", "@rom0788", "@euko2", "@AleksBroBob", "@KirillTroshinM", "@DenisOO7", "@eiler_b", "@Wrt666", "@sergey_deko", "@Galexprivate", "@DrWinsent", "@rishat11kh", "@Jephrin", "37123305995"  ]
@@ -21,6 +28,7 @@ def normalize_ticker(ticker):
     return index_map.get(ticker.upper(), ticker.upper())
 
 # Функция получения данных по опционам
+@cache.memoize()
 def get_option_data(ticker, expirations):
     ticker = normalize_ticker(ticker)  # Нормализуем тикер
     try:
@@ -258,6 +266,7 @@ def update_selected_params(btn_net, btn_ag, btn_call_oi, btn_put_oi, btn_call_vo
      Input('date-dropdown', 'value'),
      Input('selected-params', 'data')]
 )
+@cache.memoize()
 def update_options_chart(ticker, dates, selected_params):
     if not dates or not selected_params:
         return go.Figure()
@@ -422,7 +431,7 @@ def update_options_chart(ticker, dates, selected_params):
         x=0.5, y=0.5,  # Центр графика
         text="Max Power",
         showarrow=False,
-        font=dict(size=80, color="rgba(255, 255, 255, 0.1)"),  # Полупрозрачный белый текст
+        font=dict(size=85, color="rgba(255, 255, 255, 0.15)"),  # Полупрозрачный белый текст
         textangle=0,  # Горизонтальный текст
     )
 
@@ -433,6 +442,7 @@ def update_options_chart(ticker, dates, selected_params):
     Output('price-chart', 'figure'),
     [Input('ticker-input', 'value')]
 )
+@cache.memoize()
 def update_price_chart(ticker):
     # Нормализуем тикер
     ticker = normalize_ticker(ticker)
@@ -652,7 +662,7 @@ def update_price_chart(ticker):
         x=0.5, y=0.5,  # Центр графика
         text="Max Power",
         showarrow=False,
-        font=dict(size=80, color="rgba(255, 255, 255, 0.1)"),  # Полупрозрачный белый текст
+        font=dict(size=85, color="rgba(255, 255, 255, 0.15)"),  # Полупрозрачный белый текст
         textangle=0,  # Горизонтальный текст
     )
 
@@ -663,6 +673,7 @@ def update_price_chart(ticker):
     Output('price-chart-simplified', 'figure'),
     [Input('ticker-input', 'value')]
 )
+@cache.memoize()
 def update_price_chart_simplified(ticker):
     # Нормализуем тикер
     ticker = normalize_ticker(ticker)
@@ -818,7 +829,7 @@ def update_price_chart_simplified(ticker):
         x=0.5, y=0.5,  # Центр графика
         text="Max Power",
         showarrow=False,
-        font=dict(size=80, color="rgba(255, 255, 255, 0.1)"),  # Полупрозрачный белый текст
+        font=dict(size=85, color="rgba(255, 255, 255, 0.15)"),  # Полупрозрачный белый текст
         textangle=0,  # Горизонтальный текст
     )
 
