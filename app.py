@@ -17,7 +17,7 @@ cache = Cache(app.server, config={
 })
 
 # Список разрешенных пользователей Telegram
-ALLOWED_USERS = ["@MaxPower212", "212", "@AnotherUser", "@cronoq", "@avg1987", "@VictorIziumschii", " @robertcz84", "@tatifad", "@Andrey_Maryev", "@Stepanov_SV", "@martin5711", "@dkirhlarov", "@o_stmn", "@Jus_Urfin", "@AlexandrM_1976", "@Natalijapan", "@IgorM215", "@OchirMan08", "@bayun_333", "@paveldems", "@Lbanki", "@artjomeif", "@Nikitin_Kirill8", "@impulsiveness", "@ViktorAlenchikov", "@PavelZam", "@ruslan_rms", "@Dmitry_BA", "@kserginfo", "@lepsagog", "@eugeneenovikov", "@KyotoDzen", "@vardb", "@Alex_Investment_com", "@STAR_Serg", "@Intrigo7", "@sergeewpavel", "@Yan_yog", "@yuryleon", "@sani821305", "@bagh0lder", "@avgust_avgustt", "@IFin82", "@niqo5586", "Markokorp", "@d200984", "@Zhenya_jons", "@Chili_palmer", "@vadim_gr77", "375291767178", "79122476671", "@By_Debor", "@NoName999887", "manival515", "@Valerij_Cy", "@djek70", "@isaevmike", "@ilapirova", "Sergey_Bill", "@rra3483", "@bezzubcev", "@armen_lalaian", "@olegstamatov", "@LeonidShoggot", "@afonin900", "@Banderas111", "@DmitriiPetrenko", "@hyperil0", "@ViacheslavPar", "@Ramilguns", "@andreymiamimoscow", "Bapik_t", "436642455545", "@gyuszijaro", "@helenauvarova", "@Rewire", "@kommm_ko", "@DenisTrubnik", "@MdEYE", "@garik_bale", "@KJurginiene", "@svvalkiria", "@kiloperza", "@MakenzyM", "@YLT777", "@sunfire_08", "@igorartem", "@StepanenkoP", "@Sea_Master_07", "380958445987", "@Alex_Grii", "@Yuriy_Kutafin", "@MazurenkoYaroslav", "@gvejalis", "@di_floww", "@dokulakov", "@travelpro5", "@yrchik91", "@rom0788", "@euko2", "@AleksBroBob", "@KirillTroshinM", "@DenisOO7", "@eiler_b", "@Wrt666", "@sergey_deko", "@Galexprivate", "@DrWinsent", "@rishat11kh", "@Jephrin", "37123305995"  ]
+ALLOWED_USERS = ["@MaxPower212", "212", "@cronoq", "@avg1987", "@VictorIziumschii", " @robertcz84", "@tatifad", "@Andrey_Maryev", "@Stepanov_SV", "@martin5711", "@dkirhlarov", "@o_stmn", "@Jus_Urfin", "@AlexandrM_1976", "@Natalijapan", "@IgorM215", "@OchirMan08", "@bayun_333", "@paveldems", "@Lbanki", "@artjomeif", "@Nikitin_Kirill8", "@impulsiveness", "@ViktorAlenchikov", "@PavelZam", "@ruslan_rms", "@kserginfo", "@eugeneenovikov", "@lepsagog", "@vardb", "@Yan_yog", "@yuryleon", "@bagh0lder", "@IFin82", "@niqo5586", "Markokorp", "@d200984", "@Zhenya_jons", "@Chili_palmer", "@vadim_gr77", "375291767178", "79122476671", "@By_Debor", "@NoName999887", "manival515", "@Valerij_Cy", "@djek70", "@isaevmike", "@ilapirova", "Sergey_Bill", "@rra3483", "@bezzubcev", "@armen_lalaian", "@olegstamatov", "@LeonidShoggot", "@afonin900", "@Banderas111", "@DmitriiPetrenko", "@hyperil0", "@ViacheslavPar", "@Ramilguns", "@andreymiamimoscow", "Bapik_t", "436642455545", "@gyuszijaro", "@helenauvarova", "@Rewire", "@kommm_ko", "@DenisTrubnik", "@MdEYE", "@garik_bale", "@KJurginiene", "@svvalkiria", "@kiloperza", "@MakenzyM", "@YLT777", "@sunfire_08", "@igorartem", "@StepanenkoP", "@Sea_Master_07", "380958445987", "@Alex_Grii", "@Yuriy_Kutafin", "@MazurenkoYaroslav", "@gvejalis", "@di_floww", "@dokulakov", "@travelpro5", "@yrchik91", "@rom0788", "@euko2", "@AleksBroBob", "@KirillTroshinM", "@DenisOO7", "@eiler_b", "@Wrt666", "@sergey_deko", "@Galexprivate", "@DrWinsent", "@rishat11kh", "@Jephrin", "37123305995", "@ferummc", "@Yura_Bok", "@FaidenSA", "@vladpyshkin"]
 
 # Функция для преобразования тикеров
 def normalize_ticker(ticker):
@@ -280,11 +280,11 @@ def update_options_chart(ticker, dates, selected_params):
 
     # Определение диапазона для индексов и акций
     if ticker in ["^SPX", "^NDX", "^RUT", "^Dia"]:
-        price_range = 0.010  # 1.5% для индексов
+        price_range = 0.013  # 1.5% для индексов
     elif ticker in ["SPY", "QQQ", "DIA", "XSP", "IWM"]:
-        price_range = 0.04  # 5% для ETF (SPY, QQQ, DIA, XSP, IWM)
+        price_range = 0.025  # 5% для ETF (SPY, QQQ, DIA, XSP, IWM)
     else:
-        price_range = 0.30  # 30% для акций
+        price_range = 0.12  # 30% для акций
 
     if spot_price:
         left_limit = spot_price - (spot_price * price_range)
