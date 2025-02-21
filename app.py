@@ -13,7 +13,7 @@ app = dash.Dash(__name__, suppress_callback_exceptions=True)
 # Настройка кеширования
 cache = Cache(app.server, config={
     'CACHE_TYPE': 'simple',  # Используем простой тип кеширования (в памяти)
-    'CACHE_DEFAULT_TIMEOUT': 300  # Время жизни кеша в секундах (5 минут)
+    'CACHE_DEFAULT_TIMEOUT': 60  # Время жизни кеша в секундах (5 минут)
 })
 
 # Список разрешенных пользователей Telegram
