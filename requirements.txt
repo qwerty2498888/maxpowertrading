@@ -1,4 +1,5 @@
- 
+
+flask_caching 
 dash 
 yfinance 
 pandas 
