@@ -280,7 +280,7 @@ def update_options_chart(ticker, dates, selected_params):
 
     # Определение диапазона для индексов и акций
     if ticker in ["^SPX", "^NDX", "^RUT", "^Dia"]:
-        price_range = 0.013  # 1.5% для индексов
+        price_range = 0.01  # 1.5% для индексов
     elif ticker in ["SPY", "QQQ", "DIA", "XSP", "IWM"]:
         price_range = 0.025  # 5% для ETF (SPY, QQQ, DIA, XSP, IWM)
     else:
