@@ -5,19 +5,21 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 import pandas as pd
 from datetime import datetime, timedelta
-from flask_caching import Cache
+from flask_caching import Cache  # Импортируем Cache
 
 # Инициализация Dash приложения
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
 
-# Настройка кеширования
+# Настройка кэширования
 cache = Cache(app.server, config={
-    'CACHE_TYPE': 'simple',  # Используем простой тип кеширования (в памяти)
-    'CACHE_DEFAULT_TIMEOUT': 60  # Время жизни кеша в секундах (5 минут)
+    'CACHE_TYPE': 'filesystem',  # Используем файловую систему для хранения кэша
+    'CACHE_DIR': 'cache-directory',  # Папка для хранения кэша
+    'CACHE_THRESHOLD': 100  # Максимальное количество элементов в кэше
 })
+cache.clear()  # Очищаем кэш при запуске
 
 # Список разрешенных пользователей Telegram
-ALLOWED_USERS = ["@MaxPower212", "212", "@cronoq", "@avg1987", "@VictorIziumschii", " @robertcz84", "@tatifad", "@Andrey_Maryev", "@Stepanov_SV", "@martin5711", "@dkirhlarov", "@o_stmn", "@Jus_Urfin", "@AlexandrM_1976", "@Natalijapan", "@IgorM215", "@OchirMan08", "@bayun_333", "@paveldems", "@Lbanki", "@artjomeif", "@Nikitin_Kirill8", "@impulsiveness", "@ViktorAlenchikov", "@PavelZam", "@ruslan_rms", "@kserginfo", "@eugeneenovikov", "@lepsagog", "@vardb", "@Yan_yog", "@yuryleon", "@bagh0lder", "@IFin82", "@niqo5586", "@Markokorp", "@d200984", "@Zhenya_jons", "@Chili_palmer", "@vadim_gr77", "375291767178", "79122476671", "@By_Debor", "@NoName999887", "@manival515", "@Valerij_Cy", "@djek70", "@isaevmike", "@ilapirova", "@Sergey_Bill", "@rra3483", "@bezzubcev", "@armen_lalaian", "@olegstamatov", "@LeonidShoggot", "@afonin900", "@Banderas111", "@DmitriiPetrenko", "@hyperil0", "@ViacheslavPar", "@Ramilguns", "@andreymiamimoscow", "@Bapik_t", "436642455545", "@gyuszijaro", "@helenauvarova", "@Rewire", "@kommm_ko", "@DenisTrubnik", "@MdEYE", "@garik_bale", "@KJurginiene", "@svvalkiria", "@kiloperza", "@MakenzyM", "@YLT777", "@sunfire_08", "@igorartem", "@StepanenkoP", "@Sea_Master_07", "380958445987", "@Alex_Grii", "@Yuriy_Kutafin", "@MazurenkoYaroslav", "@gvejalis", "@di_floww", "@dokulakov", "@travelpro5", "@yrchik91", "@rom0788", "@euko2", "@AleksBroBob", "@KirillTroshinM", "@DenisOO7", "@eiler_b", "@Wrt666", "@sergey_deko", "@Galexprivate", "@DrWinsent", "@rishat11kh", "@Jephrin", "37123305995", "@ferummc", "@Yura_Bok", "@FaidenSA", "@vladpyshkin"]
+ALLOWED_USERS = ["@MaxPower212", "@cronoq", "@avg1987", "@VictorIziumschii", " @robertcz84", "@tatifad", "@Andrey_Maryev", "@Stepanov_SV", "@martin5711", "@dkirhlarov", "@o_stmn", "@Jus_Urfin", "@AlexandrM_1976", "@Natalijapan", "@IgorM215", "@bayun_333", "@paveldems", "@Lbanki", "@artjomeif", "@Nikitin_Kirill8", "@impulsiveness", "@ViktorAlenchikov", "@PavelZam", "@ruslan_rms", "@kserginfo", "@lepsagog", "@vardb", "@Yan_yog", "@yuryleon", "@bagh0lder", "@IFin82", "@niqo5586", "@Markokorp", "@d200984", "@Zhenya_jons", "@Chili_palmer", "@vadim_gr77", "375291767178", "79122476671", "@manival515", "@djek70", "@isaevmike", "@ilapirova", "@rra3483", "@armen_lalaian", "@olegstamatov", "@afonin900", "@Banderas111", "@DmitriiPetrenko", "@hyperil0", "@ViacheslavPar", "@Ramilguns", "@andreymiamimoscow", "@Bapik_t", "436642455545", "@gyuszijaro", "@helenauvarova", "@Rewire", "@kommm_ko", "@MdEYE", "@garik_bale", "@KJurginiene", "@svvalkiria", "@kiloperza", "@MakenzyM", "@YLT777", "@sunfire_08", "@igorartem", "@StepanenkoP", "@Sea_Master_07", "380958445987", "@Alex_Grii", "@Yuriy_Kutafin", "@MazurenkoYaroslav", "@gvejalis", "@di_floww", "@dokulakov", "@travelpro5", "@yrchik91", "@rom0788", "@euko2", "@AleksBroBob", "@KirillTroshinM", "@DenisOO7", "@eiler_b", "@Wrt666", "@sergey_deko", "@Galexprivate", "@DrWinsent", "@rishat11kh", "@Jephrin", "37123305995", "@ferummc", "@Yura_Bok", "@FaidenSA", "@vladpyshkin", "79385444000", "@DNAYERYE", "@Alvaderus", "79281818128", "821042646260", "79956706060", "358451881908", "4917632707543"]
 
 # Функция для преобразования тикеров
 def normalize_ticker(ticker):
@@ -27,8 +29,8 @@ def normalize_ticker(ticker):
     }
     return index_map.get(ticker.upper(), ticker.upper())
 
-# Функция получения данных по опционам
-@cache.memoize()
+# Функция получения данных по опционам с кэшированием
+@cache.memoize(timeout=60)  # Кэшируем на 60 секунд
 def get_option_data(ticker, expirations):
     ticker = normalize_ticker(ticker)  # Нормализуем тикер
     try:
@@ -266,7 +268,6 @@ def update_selected_params(btn_net, btn_ag, btn_call_oi, btn_put_oi, btn_call_vo
      Input('date-dropdown', 'value'),
      Input('selected-params', 'data')]
 )
-@cache.memoize()
 def update_options_chart(ticker, dates, selected_params):
     if not dates or not selected_params:
         return go.Figure()
@@ -280,9 +281,9 @@ def update_options_chart(ticker, dates, selected_params):
 
     # Определение диапазона для индексов и акций
     if ticker in ["^SPX", "^NDX", "^RUT", "^Dia"]:
-        price_range = 0.01  # 1.5% для индексов
+        price_range = 0.011  # 1.5% для индексов
     elif ticker in ["SPY", "QQQ", "DIA", "XSP", "IWM"]:
-        price_range = 0.025  # 5% для ETF (SPY, QQQ, DIA, XSP, IWM)
+        price_range = 0.03  # 5% для ETF (SPY, QQQ, DIA, XSP, IWM)
     else:
         price_range = 0.12  # 30% для акций
 
@@ -431,7 +432,7 @@ def update_options_chart(ticker, dates, selected_params):
         x=0.5, y=0.5,  # Центр графика
         text="Max Power",
         showarrow=False,
-        font=dict(size=85, color="rgba(255, 255, 255, 0.15)"),  # Полупрозрачный белый текст
+        font=dict(size=80, color="rgba(255, 255, 255, 0.1)"),  # Полупрозрачный белый текст
         textangle=0,  # Горизонтальный текст
     )
 
@@ -442,7 +443,6 @@ def update_options_chart(ticker, dates, selected_params):
     Output('price-chart', 'figure'),
     [Input('ticker-input', 'value')]
 )
-@cache.memoize()
 def update_price_chart(ticker):
     # Нормализуем тикер
     ticker = normalize_ticker(ticker)
@@ -505,6 +505,7 @@ def update_price_chart(ticker):
 
     # Определяем время открытия рынка (9:30 утра по местному времени)
     market_open_time = datetime.now().replace(hour=9, minute=30, second=0, microsecond=0)
+    market_close_time = datetime.now().replace(hour=16, minute=0, second=0, microsecond=0)
     current_time = datetime.now()
 
     # Определяем, прошло ли 45 минут после открытия рынка
@@ -564,10 +565,10 @@ def update_price_chart(ticker):
         name="Candlesticks"
     ))
 
-      # Добавляем горизонтальную линию уровня цены, где достигается максимальное значение P1
+    # Добавляем горизонтальную линию уровня цены, где достигается максимальное значение P1
     if max_p1_strike is not None:
         fig.add_trace(go.Scatter(
-            x=[data.index[0], data.index[-1]],  # От начала до конца графика
+            x=[market_open_time, market_close_time],  # От начала до конца графика
             y=[max_p1_strike, max_p1_strike],  # Горизонтальная линия на уровне max_p1_strike
             mode='lines',
             line=dict(color='#00ff00', width=line_widths['P1']),  # Зеленая сплошная линия
@@ -578,7 +579,7 @@ def update_price_chart(ticker):
     # Добавляем горизонтальную линию уровня цены, где достигается максимальное отрицательное значение Net GEX (N1)
     if max_n1_strike is not None:
         fig.add_trace(go.Scatter(
-            x=[data.index[0], data.index[-1]],  # От начала до конца графика
+            x=[market_open_time, market_close_time],  # От начала до конца графика
             y=[max_n1_strike, max_n1_strike],  # Горизонтальная линия на уровне max_n1_strike
             mode='lines',
             line=dict(color='#ff0000', width=line_widths['N1']),  # Красная сплошная линия
@@ -589,7 +590,7 @@ def update_price_chart(ticker):
     # Добавляем горизонтальную линию уровня цены, где достигается максимальное значение Call Volume
     if max_call_vol_strike is not None:
         fig.add_trace(go.Scatter(
-            x=[data.index[0], data.index[-1]],  # От начала до конца графика
+            x=[market_open_time, market_close_time],  # От начала до конца графика
             y=[max_call_vol_strike, max_call_vol_strike],  # Горизонтальная линия на уровне max_call_vol_strike
             mode='lines',
             line=dict(color='#00a0ff', width=line_widths['Call Vol']),  # Синяя сплошная линия
@@ -600,7 +601,7 @@ def update_price_chart(ticker):
     # Добавляем горизонтальную линию уровня цены, где достигается максимальное значение Put Volume
     if max_put_vol_strike is not None:
         fig.add_trace(go.Scatter(
-            x=[data.index[0], data.index[-1]],  # От начала до конца графика
+            x=[market_open_time, market_close_time],  # От начала до конца графика
             y=[max_put_vol_strike, max_put_vol_strike],  # Горизонтальная линия на уровне max_put_vol_strike
             mode='lines',
             line=dict(color='#ac5631', width=line_widths['Put Vol']),  # Коричневая сплошная линия
@@ -611,7 +612,7 @@ def update_price_chart(ticker):
     # Добавляем горизонтальную линию уровня цены для "Max Power"
     if max_power_strike is not None:
         fig.add_trace(go.Scatter(
-            x=[data.index[0], data.index[-1]],  # От начала до конца графика
+            x=[market_open_time, market_close_time],  # От начала до конца графика
             y=[max_power_strike, max_power_strike],  # Горизонтальная линия на уровне max_power_strike
             mode='lines',
             line=dict(color='#ffdf00', width=line_widths['Max Power']),  # Желтая сплошная линия
@@ -619,16 +620,16 @@ def update_price_chart(ticker):
             yaxis='y'  # Убедимся, что линия использует ту же ось Y, что и свечи
         ))
 
-        # Добавляем горизонтальную линию уровня цены, где достигается максимальное значение AG
-        if max_ag_strike is not None:
-            fig.add_trace(go.Scatter(
-                x=[data.index[0], data.index[-1]],  # От начала до конца графика
-                y=[max_ag_strike, max_ag_strike],  # Горизонтальная линия на уровне max_ag_strike
-                mode='lines',
-                line=dict(color='#ab47bc', dash='dash', width=line_widths['AG']),  # Фиолетовая пунктирная линия
-                name=f'AG Strike: {max_ag_strike:.2f}',  # Подпись линии
-                yaxis='y'  # Убедимся, что линия использует ту же ось Y, что и свечи
-            ))
+    # Добавляем горизонтальную линию уровня цены, где достигается максимальное значение AG
+    if max_ag_strike is not None:
+        fig.add_trace(go.Scatter(
+            x=[market_open_time, market_close_time],  # От начала до конца графика
+            y=[max_ag_strike, max_ag_strike],  # Горизонтальная линия на уровне max_ag_strike
+            mode='lines',
+            line=dict(color='#ab47bc', dash='dash', width=line_widths['AG']),  # Фиолетовая пунктирная линия
+            name=f'AG Strike: {max_ag_strike:.2f}',  # Подпись линии
+            yaxis='y'  # Убедимся, что линия использует ту же ось Y, что и свечи
+        ))
 
     # Настройка графика
     fig.update_layout(
@@ -639,8 +640,8 @@ def update_price_chart(ticker):
             showgrid=True,
             gridcolor='rgba(128, 128, 128, 0.2)',
             rangeslider=dict(visible=False),
-            autorange=True,  # Автоматическое расширение оси X
-            fixedrange=False,  # Разрешаем динамическое изменение диапазона
+            autorange=False,  # Отключаем автоматическое расширение оси X
+            range=[market_open_time, market_close_time],  # Фиксируем диапазон от 09:30 до 16:00
         ),
         yaxis=dict(
             title="Цена",
@@ -662,9 +663,11 @@ def update_price_chart(ticker):
         x=0.5, y=0.5,  # Центр графика
         text="Max Power",
         showarrow=False,
-        font=dict(size=85, color="rgba(255, 255, 255, 0.15)"),  # Полупрозрачный белый текст
+        font=dict(size=80, color="rgba(255, 255, 255, 0.1)"),  # Полупрозрачный белый текст
         textangle=0,  # Горизонтальный текст
     )
+
+    return fig
 
     return fig
 
@@ -673,7 +676,6 @@ def update_price_chart(ticker):
     Output('price-chart-simplified', 'figure'),
     [Input('ticker-input', 'value')]
 )
-@cache.memoize()
 def update_price_chart_simplified(ticker):
     # Нормализуем тикер
     ticker = normalize_ticker(ticker)
@@ -729,38 +731,22 @@ def update_price_chart_simplified(ticker):
     else:
         left_limit = right_limit = 0
 
-    # Находим максимальное значение Call Volume, AG и Put Volume
+    # Находим максимальное значение Call Volume, Put Volume и максимальное отрицательное значение Net GEX
     max_call_vol_strike = options_data.loc[options_data['Call Volume'].idxmax(), 'strike']
-    max_ag_strike = options_data.loc[options_data['AG'].idxmax(), 'strike']
     max_put_vol_strike = options_data.loc[options_data['Put Volume'].idxmax(), 'strike']
+    max_negative_net_gex_strike = options_data.loc[options_data['Net GEX'].idxmin(), 'strike']
 
-    # Определяем, какие зоны рисовать
-    zones_to_draw = []
+    # Определяем зону сопротивления
+    resistance_zone_lower = max_call_vol_strike * (1 + resistance_zone_lower_percent)
+    resistance_zone_upper = max_call_vol_strike * (1 + resistance_zone_upper_percent)
 
-    # Логика построения зон
-    if max_call_vol_strike > spot_price and max_ag_strike > spot_price and max_put_vol_strike < spot_price:
-        # Если Call Volume и AG выше цены, а Put Volume ниже цены
-        # Зона Resistance: от -0.05% до +0.15% (для индексов) или от -0.2% до +0.35% (для остальных)
-        resistance_zone_lower = max_call_vol_strike * (1 + resistance_zone_lower_percent)
-        resistance_zone_upper = max_call_vol_strike * (1 + resistance_zone_upper_percent)
-        zones_to_draw.append((resistance_zone_lower, resistance_zone_upper, 'Resistance zone'))
-
-        # Зона Support: от -0.15% до +0.05% (для индексов) или от -0.35% до +0.2% (для остальных)
+    # Определяем зону поддержки
+    if max_put_vol_strike < max_negative_net_gex_strike:
         support_zone_lower = max_put_vol_strike * (1 + support_zone_lower_percent)
         support_zone_upper = max_put_vol_strike * (1 + support_zone_upper_percent)
-        zones_to_draw.append((support_zone_lower, support_zone_upper, 'Support zone'))
-
-    elif max_call_vol_strike > spot_price and max_ag_strike < spot_price and max_put_vol_strike < spot_price:
-        # Если Call Volume выше цены, а AG и Put Volume ниже цены
-        # Зона Resistance: от -0.05% до +0.15% (для индексов) или от -0.2% до +0.35% (для остальных)
-        resistance_zone_lower = max_call_vol_strike * (1 + resistance_zone_lower_percent)
-        resistance_zone_upper = max_call_vol_strike * (1 + resistance_zone_upper_percent)
-        zones_to_draw.append((resistance_zone_lower, resistance_zone_upper, 'Resistance zone'))
-
-        # Зона Support: от -0.15% до +0.05% (для индексов) или от -0.35% до +0.2% (для остальных)
-        support_zone_lower = max_ag_strike * (1 + support_zone_lower_percent)
-        support_zone_upper = max_ag_strike * (1 + support_zone_upper_percent)
-        zones_to_draw.append((support_zone_lower, support_zone_upper, 'Support zone'))
+    else:
+        support_zone_lower = max_negative_net_gex_strike * (1 + support_zone_lower_percent)
+        support_zone_upper = max_negative_net_gex_strike * (1 + support_zone_upper_percent)
 
     # Создаем свечной график
     fig = go.Figure()
@@ -784,18 +770,33 @@ def update_price_chart_simplified(ticker):
         name='VWAP'
     ))
 
-    # Добавляем зоны
-    for lower, upper, label in zones_to_draw:
-        fig.add_trace(go.Scatter(
-            x=[data.index[0], data.index[-1], data.index[-1], data.index[0]],  # Координаты X для прямоугольника
-            y=[lower, lower, upper, upper],  # Координаты Y для прямоугольника
-            fill="toself",  # Заливка области
-            fillcolor="rgba(0, 160, 255, 0.2)" if label == 'Resistance zone' else "rgba(172, 86, 49, 0.2)",
-            line=dict(color="rgba(0, 160, 255, 0.5)" if label == 'Resistance zone' else "rgba(172, 86, 49, 0.5)"),
-            mode="lines",
-            name=label,  # Подпись зоны
-            hoverinfo="none",  # Отключаем всплывающие подсказки для зон
-        ))
+    # Определяем время открытия и закрытия рынка
+    market_open_time = datetime.now().replace(hour=9, minute=30, second=0, microsecond=0)
+    market_close_time = datetime.now().replace(hour=16, minute=0, second=0, microsecond=0)
+
+    # Добавляем зону сопротивления
+    fig.add_trace(go.Scatter(
+        x=[market_open_time, market_close_time, market_close_time, market_open_time],  # Координаты X для прямоугольника
+        y=[resistance_zone_lower, resistance_zone_lower, resistance_zone_upper, resistance_zone_upper],  # Координаты Y для прямоугольника
+        fill="toself",  # Заливка области
+        fillcolor="rgba(0, 160, 255, 0.2)",  # Цвет заливки для зоны сопротивления
+        line=dict(color="rgba(0, 160, 255, 0.5)"),  # Цвет линии для зоны сопротивления
+        mode="lines",
+        name='Resistance zone',  # Подпись зоны
+        hoverinfo="none",  # Отключаем всплывающие подсказки для зон
+    ))
+
+    # Добавляем зону поддержки
+    fig.add_trace(go.Scatter(
+        x=[market_open_time, market_close_time, market_close_time, market_open_time],  # Координаты X для прямоугольника
+        y=[support_zone_lower, support_zone_lower, support_zone_upper, support_zone_upper],  # Координаты Y для прямоугольника
+        fill="toself",  # Заливка области
+        fillcolor="rgba(172, 86, 49, 0.2)",  # Цвет заливки для зоны поддержки
+        line=dict(color="rgba(172, 86, 49, 0.5)"),  # Цвет линии для зоны поддержки
+        mode="lines",
+        name='Support zone',  # Подпись зоны
+        hoverinfo="none",  # Отключаем всплывающие подсказки для зон
+    ))
 
     # Настройка графика
     fig.update_layout(
@@ -806,8 +807,8 @@ def update_price_chart_simplified(ticker):
             showgrid=True,
             gridcolor='rgba(128, 128, 128, 0.2)',
             rangeslider=dict(visible=False),
-            autorange=True,  # Автоматическое расширение оси X
-            fixedrange=False,  # Разрешаем динамическое изменение диапазона
+            autorange=False,  # Отключаем автоматическое расширение оси X
+            range=[market_open_time, market_close_time],  # Фиксируем диапазон от 09:30 до 16:00
         ),
         yaxis=dict(
             title="Цена",
@@ -829,7 +830,7 @@ def update_price_chart_simplified(ticker):
         x=0.5, y=0.5,  # Центр графика
         text="Max Power",
         showarrow=False,
-        font=dict(size=85, color="rgba(255, 255, 255, 0.15)"),  # Полупрозрачный белый текст
+        font=dict(size=80, color="rgba(255, 255, 255, 0.1)"),  # Полупрозрачный белый текст
         textangle=0,  # Горизонтальный текст
     )
 
