@@ -19,7 +19,7 @@ cache = Cache(app.server, config={
 cache.clear()  # Очищаем кэш при запуске
 
 # Список разрешенных пользователей Telegram
-ALLOWED_USERS = ["313", "@cronoq", "@avg1987", "@VictorIziumschii", "@robertcz84", "@tatifad", "@Andrey_Maryev", "@Stepanov_SV", "@martin5711", "@dkirhlarov", "@o_stmn", "@Jus_Urfin", "@AlexandrM_1976", "@IgorM215", "@bayun_333", "@Lbanki", "@artjomeif", "@ViktorAlenchikov", "@PavelZam", "@ruslan_rms", "@kserginfo", "@vardb", "@Yan_yog", "@yuryleon", "@IFin82", "@niqo5586", "@Markokorp", "@d200984", "@Zhenya_jons", "@Chili_palmer", "375291767178", "79122476671", "@manival515", "@djek70", "@isaevmike", "@ilapirova", "@rra3483", "@armen_lalaian", "@olegstamatov", "@Banderas111", "@DmitriiPetrenko", "@andreymiamimoscow", "436642455545", "@gyuszijaro", "@helenauvarova", "@Rewire", "@garik_bale", "@KJurginiene", "@kiloperza", "@YLT777", "@Sea_Master_07", "380958445987", "@Yuriy_Kutafin", "@di_floww", "@dokulakov", "@travelpro5", "@yrchik91", "@euko2", "@DenisOO7", "@Wrt666", "@Galexprivate", "@DrWinsent", "@rishat11kh", "37123305995", "@ferummc", "@Yura_Bok", "@FaidenSA", "@vladpyshkin", "79385444000", "@DNAYERYE", "@Alvaderus", "821042646260", "79956706060", "358451881908", "4917632707543", "@jonytvester", "@Erken", "@eugeneenovikov", "420725576007", "79160779977", "@maxpower3674", "@maxpower4566", "@maxpower7894", "@maxpower6635", "79222411556", "@Renat258", "@bagh0lder", "79057666666", "@Bapik_t", "@SergeyM072", "380672890848", "@Sergey_Bill", "@luciusmagnus", "@Sergiy1234567", "@dmitrylan", "@Qwertyid", "@puzyatkin_kolbosyatkin", "@mrseboch", "@Daset1", "19167507128", "79219625180", "@Vitrade134", "@Vaness_IB", "@d0507002107", "@iririchs", "@Vi6226886", "@sunfire_08", "@Natalijapan", "@ElenaRussianSirena", "@Andrey_ol1", "@Ac7777888", "@Andrii36362", "@roman43210sh", "@Kuzmitskiy_Maksim", "79281818128", "@AlexMa_freedom", "@And_084", "@outsolo", "@ZxSmith", "@Andrzej_Zm", "@Romich408", "@Maksim8022", "@Nikitin_Kirill8", "@art_kirakozov", "@davribr", "14253942333", "@Korney21", "@Andrei_Pishvanov", "@iahis", "@Aik99999", "37126548141", "@vadim_gr77", "@makoltsov", "@alexndsn", "@option2037", "@futuroid", "79852696802", "@Serge_Kost", "@iurii_serbin", "79103333226", "@Roma_pr", "@ElenaERMACK", "@Alexrut1588", "17044214938", "@canapsis", "79646560911", "@kazamerican", "@sterner2021", "@RudolfPlett", "@Nikolay_Detkovskiy"]
+ALLOWED_USERS = ["313", "@cronoq", "@avg1987", "@VictorIziumschii", "@robertcz84", "@tatifad", "@Andrey_Maryev", "@Stepanov_SV", "@martin5711", "@dkirhlarov", "@o_stmn", "@Jus_Urfin", "@AlexandrM_1976", "@IgorM215", "@bayun_333", "@Lbanki", "@artjomeif", "@ViktorAlenchikov", "@PavelZam", "@ruslan_rms", "@kserginfo", "@Yan_yog", "@yuryleon", "@IFin82", "@niqo5586", "@Markokorp", "@d200984", "@Zhenya_jons", "@Chili_palmer", "375291767178", "79122476671", "@manival515", "@djek70", "@isaevmike", "@ilapirova", "@rra3483", "@armen_lalaian", "@olegstamatov", "@Banderas111", "@DmitriiPetrenko", "@andreymiamimoscow", "436642455545", "@gyuszijaro", "@helenauvarova", "@Rewire", "@garik_bale", "@KJurginiene", "@kiloperza", "@YLT777", "@Sea_Master_07", "380958445987", "@Yuriy_Kutafin", "@di_floww", "@dokulakov", "@travelpro5", "@yrchik91", "@euko2", "@DenisOO7", "@Wrt666", "@Galexprivate", "@DrWinsent", "@rishat11kh", "37123305995", "@Yura_Bok", "@FaidenSA", "@vladpyshkin", "79385444000", "@DNAYERYE", "@Alvaderus", "821042646260", "79956706060", "358451881908", "4917632707543", "@jonytvester", "420725576007", "79160779977", "@maxpower3674", "@maxpower4566", "@maxpower7894", "@maxpower6635", "79222411556", "@Renat258", "@bagh0lder", "79057666666", "@Bapik_t", "@SergeyM072", "380672890848", "@Sergey_Bill", "@luciusmagnus", "@Sergiy1234567", "@dmitrylan", "@Qwertyid", "@puzyatkin_kolbosyatkin", "@mrseboch", "@Daset1", "19167507128", "79219625180", "@Vitrade134", "@Vaness_IB", "@d0507002107", "@iririchs", "@Vi6226886", "@sunfire_08", "@Natalijapan", "@ElenaRussianSirena", "@Andrey_ol1", "@Ac7777888", "@Andrii36362", "@roman43210sh", "@Kuzmitskiy_Maksim", "79281818128", "@AlexMa_freedom", "@And_084", "@outsolo", "@ZxSmith", "@Andrzej_Zm", "@Romich408", "@Maksim8022", "@Nikitin_Kirill8", "@art_kirakozov", "@davribr", "14253942333", "@Korney21", "@Andrei_Pishvanov", "@iahis", "@Aik99999", "37126548141", "@vadim_gr77", "@makoltsov", "@alexndsn", "@option2037", "@futuroid", "79852696802", "@Serge_Kost", "@iurii_serbin", "79103333226", "@Roma_pr", "@ElenaERMACK", "@Alexrut1588", "17044214938", "@canapsis", "79646560911", "@kazamerican", "@sterner2021", "@RudolfPlett", "@Nikolay_Detkovskiy", "@Geosma55", "@DmitriiDubov87"]
 
 # Функция для преобразования тикеров
 def normalize_ticker(ticker):
@@ -419,9 +419,10 @@ def update_options_chart(ticker, dates, selected_params):
             tickmode='array',  # Используем массив значений для оси X
             tickvals=options_data['strike'].tolist(),  # Реальные значения страйков
             tickformat='1',  # Округление страйков до целых чисел
+            fixedrange=True
         ),
-        yaxis=dict(title="Net GEX", side="left", showgrid=False, zeroline=False),
-        yaxis2=dict(title="", side="right", overlaying="y", showgrid=False, zeroline=False),
+        yaxis=dict(title="Net GEX", side="left", showgrid=False, zeroline=False, fixedrange=True),
+        yaxis2=dict(title="", side="right", overlaying="y", showgrid=False, zeroline=False, fixedrange=True),
         title="" + ticker,
         plot_bgcolor='#1e1e1e',
         paper_bgcolor='#1e1e1e',
@@ -644,19 +645,20 @@ def update_price_chart(ticker):
             rangeslider=dict(visible=False),
             autorange=False,  # Отключаем автоматическое расширение оси X
             range=[market_open_time, market_close_time],  # Фиксируем диапазон от 09:30 до 16:00
+            fixedrange=True
         ),
         yaxis=dict(
             title="Цена",
             showgrid=True,
             gridcolor='rgba(128, 128, 128, 0.2)',
-            fixedrange=False
+            fixedrange=True
         ),
         plot_bgcolor='#1e1e1e',
         paper_bgcolor='#1e1e1e',
         font=dict(color='white'),
         hovermode='x unified',
         margin=dict(l=50, r=50, b=50, t=50),
-        dragmode='pan'
+        dragmode=False
     )
 
     # Добавление водяного знака "Max Power" на нижний график
@@ -811,12 +813,13 @@ def update_price_chart_simplified(ticker):
             rangeslider=dict(visible=False),
             autorange=False,  # Отключаем автоматическое расширение оси X
             range=[market_open_time, market_close_time],  # Фиксируем диапазон от 09:30 до 16:00
+            fixedrange=True  # Отключаем масштабирование и смещение по оси X
         ),
         yaxis=dict(
             title="Цена",
             showgrid=True,
             gridcolor='rgba(128, 128, 128, 0.2)',
-            fixedrange=False
+            fixedrange=True
         ),
         plot_bgcolor='#1e1e1e',
         paper_bgcolor='#1e1e1e',
