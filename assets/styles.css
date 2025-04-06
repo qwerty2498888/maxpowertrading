@@ -1,10 +1,18 @@
 /* Общие стили */
 body {
-    background-color: #1e1e1e;
+    background-color: #191919;
     color: white;
     font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
+}
+
+.graph-container {
+    border-radius: 12px; /* Закругленные углы */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Тень для эффекта возвышения */
+    overflow: hidden; /* Чтобы содержимое графика не выходило за пределы скругленных углов */
+    background-color: #1e1e1e; /* Фон графика */
+    padding: 10px; /* Отступы внутри контейнера */
 }
 
 /* Заголовок */
@@ -17,7 +25,7 @@ h1 {
 
 /* Контейнеры */
 .dash-container {
-    background-color: #292929;
+    background-color: #1e1e1e;
     padding: 15px;
     border-radius: 8px;
     margin: 10px auto;
@@ -104,6 +112,8 @@ h1 {
 /* График */
 #options-chart {
     border-radius: 8px;
-    background-color: #292929;
+    background-color: #191919;
     padding: 15px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+
+
