@@ -7,6 +7,7 @@ body {
     padding: 0;
 }
 
+
 .graph-container {
     border-radius: 12px; /* Закругленные углы */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Тень для эффекта возвышения */
