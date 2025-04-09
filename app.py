@@ -186,85 +186,6 @@ def add_static_levels_to_chart(fig, resistance_levels, support_levels, market_op
 
     return fig
 
-
-# Лейаут для страницы "Options Summary"
-options_summary_page = html.Div(
-    className='options-summary-page',
-    children=[
-        html.H1("P/C Ratio", style={'textAlign': 'center', 'color': 'white'}),
-
-        html.Div(
-            dash_table.DataTable(
-                id='options-summary-table',
-                columns=[
-                    {'name': 'Ticker', 'id': 'Ticker'},
-                    {'name': 'Price', 'id': 'Price'},
-                    {'name': 'Resistance', 'id': 'Resistance'},
-                    {'name': 'Support', 'id': 'Support'},
-                    {'name': 'Call OI Amount', 'id': 'Call OI Amount'},
-                    {'name': 'Put OI Amount', 'id': 'Put OI Amount'},
-                    {'name': 'P/C Ratio', 'id': 'P/C Ratio'}
-                ],
-                # Основные настройки
-                editable=False,
-                row_selectable='none',
-                cell_selectable=False,
-                style_as_list_view=True,  # Убирает полосы между строками
-
-                # Стилизация
-                style_table={
-                    'overflowX': 'auto',
-                    'borderRadius': '12px',
-                    'boxShadow': '0 4px 10px rgba(0, 0, 0, 0.3)',
-                    'backgroundColor': '#1e1e1e',
-                    'pointerEvents': 'none'  # Полное отключение взаимодействия
-                },
-                style_header={
-                    'backgroundColor': '#1e1e1e',
-                    'color': 'white',
-                    'fontWeight': 'bold',
-                    'border': 'none'
-                },
-                style_cell={
-                    'backgroundColor': '#2d2d2d',
-                    'color': 'white',
-                    'padding': '10px',
-                    'textAlign': 'center',
-                    'border': 'none',
-                    'cursor': 'default',
-                    'pointerEvents': 'none'  # Отключает события мыши для ячеек
-                },
-                style_data={
-                    'border': 'none',
-                    'pointerEvents': 'none'  # Отключает события мыши для данных
-                },
-                style_data_conditional=[
-                    {
-                        'if': {'row_index': 'odd'},
-                        'backgroundColor': '#252525'
-                    },
-                    {
-                        'if': {'column_id': 'P/C Ratio'},
-                        'fontWeight': 'bold'
-                    }
-                ],
-
-                # Дополнительные параметры для полного отключения взаимодействия
-                active_cell=None,
-                selected_cells=None,
-
-            ),
-            style={'margin-bottom': '20px'}
-        ),
-        dcc.Location(id='summary-url', refresh=False)
-    ],
-    style={
-        'margin-left': '10%',
-        'padding': '20px',
-        'color': 'white'
-    }
-)
-
 # Лейаут для страницы "How to use GEX"
 how_to_use_gex_page = html.Div(
     className='how-to-use-gex-page',
@@ -590,9 +511,6 @@ app.layout = html.Div([
                 html.Hr(),
                 html.Ul([
                     html.Li(dcc.Link("Key Levels", href="/key-levels",
-                                     style={'color': 'white', 'text-decoration': 'none'})),
-                    html.Li(style={'height': '20px'}),  # Добавляем пустой элемент для отступа
-                    html.Li(dcc.Link("P/C Ratio", href="/options-summary",
                                      style={'color': 'white', 'text-decoration': 'none'})),
                     html.Li(style={'height': '20px'}),  # Добавляем пустой элемент для отступа
                     html.Li(dcc.Link("How to use GEX", href="/how-to-use-gex",
@@ -1414,7 +1332,7 @@ def update_options_chart(ticker, dates, selected_params):
 
     # Оригинальные параметры диапазона
     if ticker in ["^SPX", "^NDX", "^RUT", "^Dia"]:
-        price_range = 0.023
+        price_range = 0.018
     elif ticker in ["SPY", "QQQ", "DIA", "XSP", "IWM"]:
         price_range = 0.03
     elif ticker in ["^VIX"]:
@@ -2248,91 +2166,6 @@ def update_key_levels_chart(ticker):
     return fig
 
 
-# Callback для обновления таблицы Options Summary
-@app.callback(
-    Output('options-summary-table', 'data'),
-    [Input('url', 'pathname')]  # Используем изменение URL как триггер
-)
-def update_options_summary_table(pathname):
-    if pathname == '/options-summary':
-        return get_pc_ratio_data()
-    return []
-
-
-@cache.memoize(timeout=600)  # Кэшируем на 10 минут
-def get_pc_ratio_data():
-    # Определяем индексы и ETF
-    indices_etfs = ["SPX", "SPY", "QQQ", "VIX", "DIA", "IWM", "RUT", "XSP"]
-    # Показываем данные для всех запрошенных тикеров
-    tickers = indices_etfs + [
-        "NVDA", "AAPL", "TSLA", "META", "MSFT", "GOOG",
-        "AMZN", "AVGO", "WMT", "JPM", "MU", "BA", "SNOW",
-        "UBER", "ROKU", "PLTR", "GS", "COIN"
-    ]
-
-    table_data = []
-
-    for ticker in tickers:
-        normalized_ticker = normalize_ticker(ticker)
-        stock = yf.Ticker(normalized_ticker)
-
-        try:
-            price = stock.history(period='1d')['Close'].iloc[-1]
-        except:
-            price = None
-
-        options_data, _, spot_price, _ = get_option_data(normalized_ticker, [])
-
-        if options_data is None or options_data.empty or price is None:
-            continue
-
-        # Определяем диапазон цены в зависимости от типа тикера
-        if ticker in indices_etfs:
-            price_range = 0.01  # 1% для индексов и ETF
-        else:
-            price_range = 0.05  # 5% для акций
-
-        # Фильтруем данные опционов в пределах диапазона цены (только для Resistance и Support)
-        lower_limit = price * (1 - price_range)
-        upper_limit = price * (1 + price_range)
-        filtered_data = options_data[
-            (options_data['strike'] >= lower_limit) &
-            (options_data['strike'] <= upper_limit)
-            ]
-
-        if filtered_data.empty:
-            continue
-
-        # Рассчитываем Resistance (максимальный Call Volume в пределах диапазона)
-        max_call_vol_strike = filtered_data.loc[filtered_data['Call Volume'].idxmax(), 'strike']
-
-        # Рассчитываем Support (максимальный Put Volume или минимальный Net GEX в пределах диапазона)
-        max_put_vol_strike = filtered_data.loc[filtered_data['Put Volume'].idxmax(), 'strike']
-        max_negative_net_gex_strike = filtered_data.loc[filtered_data['Net GEX'].idxmin(), 'strike']
-
-        if max_put_vol_strike < max_negative_net_gex_strike:
-            support_strike = max_put_vol_strike
-        else:
-            support_strike = max_negative_net_gex_strike
-
-        # Суммируем Call OI и Put OI по ВСЕМ опционам (не только в пределах диапазона)
-        call_oi_amount = options_data['Call OI'].sum()
-        put_oi_amount = options_data['Put OI'].sum()
-
-        # Рассчитываем P/C Ratio
-        pc_ratio = put_oi_amount / call_oi_amount if call_oi_amount != 0 else float('inf')
-
-        table_data.append({
-            'Ticker': ticker,
-            'Price': round(price, 2),
-            'Resistance': round(max_call_vol_strike, 2),
-            'Support': round(support_strike, 2),
-            'Call OI Amount': f"{call_oi_amount:,.0f}",
-            'Put OI Amount': f"{put_oi_amount:,.0f}",
-            'P/C Ratio': f"{pc_ratio:.2f}"
-        })
-
-    return table_data
 
 
 # Запуск приложения
