@@ -19,7 +19,7 @@ cache = Cache(app.server, config={
 cache.clear()
 
 # Список разрешенных пользователей Telegram
-ALLOWED_USERS = ["313", "@cronoq", "@avg1987", "@VictorIziumschii", "@robertcz84", "@tatifad", "@Andrey_Maryev", "@Stepanov_SV", "@martin5711", "@dkirhlarov", "@o_stmn", "@Jus_Urfin", "@IgorM215", "@Lbanki", "@artjomeif", "@ViktorAlenchikov", "@PavelZam", "@ruslan_rms", "@kserginfo", "@Yan_yog", "@IFin82", "@niqo5586", "@d200984", "@Zhenya_jons", "@Chili_palmer", "375291767178", "79122476671", "@manival515", "@isaevmike", "@ilapirova", "@rra3483", "@armen_lalaian", "@olegstamatov", "@Banderas111", "@andreymiamimoscow", "436642455545", "@gyuszijaro", "@helenauvarova", "@Rewire", "@garik_bale", "@KJurginiene", "@kiloperza", "@YLT777", "@Sea_Master_07", "380958445987", "@Yuriy_Kutafin", "@di_floww", "@dokulakov", "@travelpro5", "@yrchik91", "@euko2", "@DenisOO7", "@Wrt666", "@Galexprivate", "@DrWinsent", "@rishat11kh", "37123305995", "@Yura_Bok", "@FaidenSA", "821042646260", "79956706060", "358451881908", "4917632707543", "@jonytvester", "79160779977", "@maxpower3674", "@maxpower4566", "@maxpower7894", "@maxpower6635", "@Renat258", "@bagh0lder", "79057666666", "@Bapik_t", "@SergeyM072", "380672890848", "@Sergey_Bill", "@dmitrylan", "@Qwertyid", "@puzyatkin_kolbosyatkin", "@mrseboch", "79219625180", "@Vitrade134", "@Vaness_IB", "@iririchs", "@Natalijapan", "@ElenaRussianSirena", "@Andrey_ol1", "@Andrii36362", "@roman43210sh", "@Kuzmitskiy_Maksim", "79281818128", "@AlexMa_freedom", "@And_084", "@outsolo", "@ZxSmith", "@Andrzej_Zm", "@Romich408", "@Maksim8022", "@Nikitin_Kirill8", "@art_kirakozov", "@davribr", "14253942333", "@Korney21", "@Andrei_Pishvanov", "@iahis", "@Aik99999", "37126548141", "@vadim_gr77", "@makoltsov", "@alexndsn", "@option2037", "@futuroid", "79852696802", "@Serge_Kost", "@iurii_serbin", "79103333226", "@Roma_pr", "@ElenaERMACK", "@Alexrut1588", "17044214938", "@canapsis", "79646560911", "@kazamerican", "@sterner2021", "@RudolfPlett", "@Nikolay_Detkovskiy", "@Geosma55", "@DmitriiDubov87", "@sergeytrotskii", "@yuryleon", "@dmitriy_kashintsev", "@Maxabr91", "@kingkrys", "@ZERHIUS", "@Aydar_Ka", "@DrKoledgio", "@holod_new", "@procarbion", "@msyarcev", "17866060066", "@DmitriiUSB", "@Jephrin", "@MdEYE", "@Deonis_14", "@Mistershur", '@MakenzyM', "@OchirMan08", "@MarkAlim8", "@v_zmitrovich", "@amsol111", "@Atomicgo18", "@djek70", "79043434519", "@iii_logrus", "@Groove12", "@sergeewpavel", "@RomaTomilov", "@Markokorp", "t_gora", "@luciusmagnus", "@AlexandrM_1976", "@shstrnn", "@nzdr15", "@DmitriiPetrenko", "@Arsen911", "@Norfolk_san", "@zhaKOSHKA", "79104358892", "@Ikprof", "@Ikprof"]
+ALLOWED_USERS = ["313", "@cronoq", "@avg1987", "@VictorIziumschii", "@robertcz84", "@tatifad", "@Andrey_Maryev", "@Stepanov_SV", "@martin5711", "@dkirhlarov", "@o_stmn", "@Jus_Urfin", "@IgorM215", "@Lbanki", "@artjomeif", "@ViktorAlenchikov", "@PavelZam", "@ruslan_rms", "@kserginfo", "@Yan_yog", "@IFin82", "@niqo5586", "@d200984", "@Zhenya_jons", "@Chili_palmer", "375291767178", "79122476671", "@manival515", "@isaevmike", "@ilapirova", "@rra3483", "@armen_lalaian", "@olegstamatov", "@Banderas111", "@andreymiamimoscow", "436642455545", "@gyuszijaro", "@helenauvarova", "@Rewire", "@garik_bale", "@KJurginiene", "@kiloperza", "@YLT777", "@Sea_Master_07", "380958445987", "@Yuriy_Kutafin", "@di_floww", "@dokulakov", "@travelpro5", "@yrchik91", "@euko2", "@DenisOO7", "@Wrt666", "@Galexprivate", "@DrWinsent", "@rishat11kh", "37123305995", "@Yura_Bok", "@FaidenSA", "821042646260", "79956706060", "358451881908", "4917632707543", "@jonytvester", "79160779977", "@maxpower3674", "@maxpower4566", "@maxpower7894", "@maxpower6635", "@Renat258", "@bagh0lder", "79057666666", "@Bapik_t", "@SergeyM072", "380672890848", "@Sergey_Bill", "@dmitrylan", "@Qwertyid", "@puzyatkin_kolbosyatkin", "@mrseboch", "79219625180", "@Vitrade134", "@Vaness_IB", "@iririchs", "@Natalijapan", "@ElenaRussianSirena", "@Andrey_ol1", "@Andrii36362", "@roman43210sh", "@Kuzmitskiy_Maksim", "79281818128", "@AlexMa_freedom", "@And_084", "@outsolo", "@ZxSmith", "@Andrzej_Zm", "@Romich408", "@Maksim8022", "@Nikitin_Kirill8", "@art_kirakozov", "@davribr", "14253942333", "@Korney21", "@Andrei_Pishvanov", "@iahis", "@Aik99999", "37126548141", "@vadim_gr77", "@makoltsov", "@alexndsn", "@option2037", "@futuroid", "79852696802", "@Serge_Kost", "@iurii_serbin", "79103333226", "@Roma_pr", "@ElenaERMACK", "@Alexrut1588", "17044214938", "@canapsis", "79646560911", "@kazamerican", "@sterner2021", "@RudolfPlett", "@Nikolay_Detkovskiy", "@Geosma55", "@DmitriiDubov87", "@sergeytrotskii", "@yuryleon", "@dmitriy_kashintsev", "@Maxabr91", "@kingkrys", "@ZERHIUS", "@Aydar_Ka", "@DrKoledgio", "@holod_new", "@procarbion", "@msyarcev", "17866060066", "@DmitriiUSB", "@Jephrin", "@MdEYE", "@Deonis_14", "@Mistershur", '@MakenzyM', "@OchirMan08", "@MarkAlim8", "@v_zmitrovich", "@amsol111", "@Atomicgo18", "@djek70", "79043434519", "@iii_logrus", "@Groove12", "@sergeewpavel", "@RomaTomilov", "@Markokorp", "t_gora", "@luciusmagnus", "@AlexandrM_1976", "@shstrnn", "@nzdr15", "@DmitriiPetrenko", "@Arsen911", "@Norfolk_san", "@zhaKOSHKA", "79104358892", "@Ikprof", "@ambidekstr10"]
 
 
 # Функция для преобразования тикеров
@@ -1528,7 +1528,7 @@ def update_price_chart(ticker):
     options_data, _, spot_price, max_ag_strike = get_option_data(ticker, [])
 
     if ticker in ["^SPX", "^NDX", "^RUT", "^DJI", "SPY", "QQQ", "IWM"]:
-        price_range = 0.023
+        price_range = 0.018
     else:
         price_range = 0.05
 
@@ -1724,7 +1724,7 @@ def update_price_chart_simplified(ticker):
         return go.Figure()
 
     if ticker in ["^SPX", "^NDX", "^RUT", "^DJI"]:
-        price_range = 0.023
+        price_range = 0.018
         resistance_zone_lower_percent = -0.0005
         resistance_zone_upper_percent = 0.0015
         support_zone_lower_percent = -0.0015
@@ -1909,9 +1909,9 @@ def update_key_levels_chart(ticker):
 
     # Определяем диапазон для всего графика (4% от цены открытия)
     if ticker in ["^SPX", "^NDX", "^RUT", "^DJI", "^VIX"]:
-        chart_range = 0.19  # 4% для индексов
+        chart_range = 0.1  # 4% для индексов
     elif ticker in ["SPY", "QQQ", "DIA", "XSP", "IWM"]:
-        chart_range = 0.19  # 4% для ETF
+        chart_range = 0.1  # 4% для ETF
     else:
         chart_range = 0.2  # 10% для акций
 
