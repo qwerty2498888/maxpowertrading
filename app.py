@@ -19,7 +19,7 @@ cache = Cache(app.server, config={
 cache.clear()
 
 # Список разрешенных пользователей Telegram
-ALLOWED_USERS = ["313", "@cronoq", "@avg1987", "@VictorIziumschii", "@robertcz84", "@tatifad", "@Andrey_Maryev", "@Stepanov_SV", "@martin5711", "@dkirhlarov", "@o_stmn", "@Jus_Urfin", "@IgorM215", "@Lbanki", "@artjomeif", "@ViktorAlenchikov", "@PavelZam", "@ruslan_rms", "@kserginfo", "@Yan_yog", "@IFin82", "@niqo5586", "@d200984", "@Zhenya_jons", "@Chili_palmer", "375291767178", "79122476671", "@manival515", "@isaevmike", "@ilapirova", "@rra3483", "@armen_lalaian", "@olegstamatov", "@Banderas111", "@andreymiamimoscow", "436642455545", "@gyuszijaro", "@helenauvarova", "@Rewire", "@garik_bale", "@KJurginiene", "@kiloperza", "@YLT777", "@Sea_Master_07", "380958445987", "@Yuriy_Kutafin", "@di_floww", "@dokulakov", "@travelpro5", "@yrchik91", "@euko2", "@DenisOO7", "@Wrt666", "@Galexprivate", "@DrWinsent", "@rishat11kh", "37123305995", "@Yura_Bok", "@FaidenSA", "821042646260", "79956706060", "358451881908", "4917632707543", "@jonytvester", "79160779977", "@maxpower3674", "@maxpower4566", "@maxpower7894", "@maxpower6635", "@Renat258", "@bagh0lder", "79057666666", "@Bapik_t", "@SergeyM072", "380672890848", "@Sergey_Bill", "@dmitrylan", "@Qwertyid", "@puzyatkin_kolbosyatkin", "@mrseboch", "79219625180", "@Vitrade134", "@Vaness_IB", "@iririchs", "@Natalijapan", "@ElenaRussianSirena", "@Andrey_ol1", "@Andrii36362", "@roman43210sh", "@Kuzmitskiy_Maksim", "79281818128", "@AlexMa_freedom", "@And_084", "@outsolo", "@ZxSmith", "@Andrzej_Zm", "@Romich408", "@Maksim8022", "@Nikitin_Kirill8", "@art_kirakozov", "@davribr", "14253942333", "@Korney21", "@Andrei_Pishvanov", "@iahis", "@Aik99999", "37126548141", "@vadim_gr77", "@makoltsov", "@alexndsn", "@option2037", "@futuroid", "79852696802", "@Serge_Kost", "@iurii_serbin", "79103333226", "@Roma_pr", "@ElenaERMACK", "@Alexrut1588", "17044214938", "@canapsis", "79646560911", "@kazamerican", "@sterner2021", "@RudolfPlett", "@Nikolay_Detkovskiy", "@Geosma55", "@DmitriiDubov87", "@sergeytrotskii", "@yuryleon", "@dmitriy_kashintsev", "@Maxabr91", "@kingkrys", "@ZERHIUS", "@Aydar_Ka", "@DrKoledgio", "@holod_new", "@procarbion", "@msyarcev", "17866060066", "@DmitriiUSB", "@Jephrin", "@MdEYE", "@Deonis_14", "@Mistershur", '@MakenzyM', "@OchirMan08", "@MarkAlim8", "@v_zmitrovich", "@amsol111", "@Atomicgo18", "@djek70", "79043434519", "@iii_logrus", "@Groove12", "@sergeewpavel", "@RomaTomilov", "@Markokorp", "t_gora", "@luciusmagnus", "@AlexandrM_1976", "@shstrnn", "@nzdr15", "@DmitriiPetrenko", "@Arsen911", "@Norfolk_san", "@zhaKOSHKA", "79104358892", "@Ikprof", "@ambidekstr10", "393203005915", "@Louren325"]
+ALLOWED_USERS = ["313", "@cronoq", "@avg1987", "@VictorIziumschii", "@robertcz84", "@tatifad", "@Andrey_Maryev", "@Stepanov_SV", "@martin5711", "@dkirhlarov", "@o_stmn", "@Jus_Urfin", "@IgorM215", "@Lbanki", "@artjomeif", "@ViktorAlenchikov", "@PavelZam", "@ruslan_rms", "@kserginfo", "@Yan_yog", "@IFin82", "@niqo5586", "@d200984", "@Zhenya_jons", "@Chili_palmer", "375291767178", "79122476671", "@manival515", "@isaevmike", "@ilapirova", "@rra3483", "@armen_lalaian", "@olegstamatov", "@Banderas111", "@andreymiamimoscow", "436642455545", "@gyuszijaro", "@helenauvarova", "@Rewire", "@garik_bale", "@KJurginiene", "@kiloperza", "@YLT777", "@Sea_Master_07", "380958445987", "@Yuriy_Kutafin", "@di_floww", "@dokulakov", "@travelpro5", "@yrchik91", "@euko2", "@Wrt666", "@Galexprivate", "@DrWinsent", "@rishat11kh", "37123305995", "@Yura_Bok", "@FaidenSA", "79956706060", "358451881908", "@jonytvester", "79160779977", "@maxpower3674", "@maxpower4566", "@maxpower7894", "@maxpower6635", "@Renat258", "@bagh0lder", "79057666666", "@Bapik_t", "@SergeyM072", "380672890848", "@Sergey_Bill", "@dmitrylan", "@Qwertyid", "@puzyatkin_kolbosyatkin", "@mrseboch", "79219625180", "@Vitrade134", "@Vaness_IB", "@iririchs", "@Natalijapan", "@ElenaRussianSirena", "@Andrii36362", "@Kuzmitskiy_Maksim", "79281818128", "@Romich408", "@Maksim8022", "@Nikitin_Kirill8", "@art_kirakozov", "@davribr", "14253942333", "@Korney21", "@Andrei_Pishvanov", "@iahis", "@Aik99999", "37126548141", "@vadim_gr77", "@makoltsov", "@alexndsn", "@option2037", "@futuroid", "79852696802", "@Serge_Kost", "@iurii_serbin", "79103333226", "@Roma_pr", "@ElenaERMACK", "@Alexrut1588", "17044214938", "@canapsis", "79646560911", "@kazamerican", "@sterner2021", "@RudolfPlett", "@Nikolay_Detkovskiy", "@Geosma55", "@DmitriiDubov87", "@sergeytrotskii", "@yuryleon", "@dmitriy_kashintsev", "@Maxabr91", "@kingkrys", "@ZERHIUS", "@Aydar_Ka", "@DrKoledgio", "@holod_new", "@procarbion", "@msyarcev", "17866060066", "@DmitriiUSB", "@Jephrin", "@MdEYE", "@Deonis_14", "@Mistershur", '@MakenzyM', "@OchirMan08", "@MarkAlim8", "@v_zmitrovich", "@amsol111", "@Atomicgo18", "@djek70", "79043434519", "@iii_logrus", "@Groove12", "@sergeewpavel", "@RomaTomilov", "@Markokorp", "t_gora", "@luciusmagnus", "@AlexandrM_1976", "@shstrnn", "@nzdr15", "@DmitriiPetrenko", "@Arsen911", "@Norfolk_san", "@zhaKOSHKA", "79104358892", "@Ikprof", "@ambidekstr10", "393203005915", "@Louren325", "@GorAnt90", "@sunfire_08", "@Sergiy1234567"]
 
 
 # Функция для преобразования тикеров
@@ -543,9 +543,10 @@ index_page = html.Div([
     html.H1("Max Power", style={'textAlign': 'center'}),
 
     html.Div([
-        html.Label("Введите тикер актива:"),
+        html.Label(""),
         dcc.Input(id='ticker-input', type='text', value='SPX', className='dash-input'),
-    ], className='dash-container'),
+        html.Button('Поиск', id='search-button', n_clicks=0, className='dash-button', style={'margin-left': '10px'}),
+    ], className='dash-container', style={'display': 'flex', 'align-items': 'center'}),
 
     html.Div([
         html.Label("Выберите даты экспирации:"),
@@ -619,9 +620,10 @@ key_levels_page = html.Div(
         html.H1("Key Levels", style={'textAlign': 'center', 'color': 'white'}),
 
         html.Div([
-            html.Label("Введите тикер актива:", style={'color': 'white'}),
+            html.Label("", style={'color': 'white'}),
             dcc.Input(id='ticker-input-key-levels', type='text', value='SPX', className='dash-input'),
-        ], className='dash-container'),
+            html.Button('Поиск', id='search-button-key-levels', n_clicks=0, className='dash-button', style={'margin-left': '10px'}),
+        ], className='dash-container', style={'display': 'flex', 'align-items': 'center'}),
 
         html.Div(
             dcc.Graph(
@@ -636,7 +638,6 @@ key_levels_page = html.Div(
             className='graph-container'
         ),
 
-        # Добавляем блок с прогнозом
         html.Div(
             id='market-forecast',
             style={
@@ -659,9 +660,20 @@ key_levels_page = html.Div(
 # Добавляем новый callback для прогноза
 @app.callback(
     Output('forecast-text', 'children'),
-    [Input('ticker-input-key-levels', 'value')]
+    [Input('search-button-key-levels', 'n_clicks'),
+     Input('ticker-input-key-levels', 'n_submit')],
+    [State('ticker-input-key-levels', 'value')],
+    prevent_initial_call=False  # Разрешаем первоначальный вызов
 )
-def update_forecast(ticker):
+def update_forecast(n_clicks, n_submit, ticker):
+    ctx = dash.callback_context
+
+    # Если это первоначальный запуск - используем SPX
+    if not ctx.triggered:
+        ticker = 'SPX'
+    elif not ticker:  # Если поле пустое
+        ticker = 'SPX'
+
     ticker = normalize_ticker(ticker)
     stock = yf.Ticker(ticker)
 
@@ -822,11 +834,6 @@ def update_forecast(ticker):
                 html.P(f"{vwap:.2f}", style={'color': 'white', 'font-weight': 'bold'})
             ], style={'display': 'flex', 'justify-content': 'space-between'}),
 
-            html.Div([
-                html.P("Объем:", style={'color': 'white'}),
-                html.P(f"{current_volume:,.0f} ({(current_volume / avg_volume) * 100:.0f}% от среднего)",
-                       style={'color': 'green' if current_volume > avg_volume else 'red', 'font-weight': 'bold'})
-            ], style={'display': 'flex', 'justify-content': 'space-between'}),
 
             html.Div([
                 html.P("RSI (14):", style={'color': 'white'}),
@@ -1152,14 +1159,6 @@ def update_forecast(ticker):
     insights = []
     insights.append(html.H5("🔍 ДОПОЛНИТЕЛЬНЫЕ ИНСАЙТЫ:", style={'color': 'white', 'margin-top': '30px'}))
 
-    # Анализ объема
-    volume_analysis = ""
-    if current_volume > avg_volume * 1.5:
-        volume_analysis = "🔹 Высокий объем: возможен сильный импульс в направлении пробоя"
-    elif current_volume < avg_volume * 0.7:
-        volume_analysis = "🔹 Низкий объем: осторожность - возможны ложные пробои"
-    else:
-        volume_analysis = "🔹 Средний объем: подтверждайте сигналы дополнительными индикаторами"
 
     # Анализ RSI
     rsi_analysis = ""
@@ -1180,7 +1179,6 @@ def update_forecast(ticker):
         pc_analysis = "🔹 Нейтральный P/C Ratio: нет четкого сигнала"
 
     insights.append(html.Div([
-        html.P(volume_analysis, style={'color': 'white'}),
         html.P(rsi_analysis, style={'color': 'white'}),
         html.P(pc_analysis, style={'color': 'white'})
     ], style={
@@ -1246,12 +1244,20 @@ def check_username(n_clicks, username, stored_username, auth_status):
 # Callback для обновления списка дат
 @app.callback(
     [Output('date-dropdown', 'options'), Output('date-dropdown', 'value')],
-    [Input('ticker-input', 'value')]
+    [Input('search-button', 'n_clicks'),
+     Input('ticker-input', 'n_submit')],
+    [State('ticker-input', 'value')],
+    prevent_initial_call=False  # Разрешаем первоначальный вызов
 )
-def update_dates(ticker):
+def update_dates(n_clicks, n_submit, ticker):
+    ctx = dash.callback_context
+
+    # Если это первоначальный запуск и нет ввода от пользования
+    if not ctx.triggered or ticker is None:
+        ticker = 'SPX'  # Устанавливаем SPX по умолчанию
+
     ticker = normalize_ticker(ticker)
     _, available_dates, _, _ = get_option_data(ticker, [])
-    print(f"Доступные даты: {available_dates}")
     if not available_dates:
         return [], []
     options = [{'label': date, 'value': date} for date in available_dates]
@@ -1315,12 +1321,15 @@ def update_selected_params(btn_net, btn_ag, btn_call_oi, btn_put_oi, btn_call_vo
 # Callback для обновления графика опционов (возвращаем оригинальную версию)
 @app.callback(
     Output('options-chart', 'figure'),
-    [Input('ticker-input', 'value'),
+    [Input('search-button', 'n_clicks'),
+     Input('ticker-input', 'n_submit'),
      Input('date-dropdown', 'value'),
-     Input('selected-params', 'data')]
+     Input('selected-params', 'data')],
+    [State('ticker-input', 'value')]
 )
-def update_options_chart(ticker, dates, selected_params):
-    if not dates or not selected_params:
+def update_options_chart(n_clicks, n_submit, dates, selected_params, ticker):
+    ctx = dash.callback_context
+    if not ctx.triggered or not dates or not selected_params:
         return go.Figure()
 
     ticker = normalize_ticker(ticker)
@@ -1332,7 +1341,7 @@ def update_options_chart(ticker, dates, selected_params):
 
     # Оригинальные параметры диапазона
     if ticker in ["^SPX", "^NDX", "^RUT", "^Dia"]:
-        price_range = 0.018
+        price_range = 0.017
     elif ticker in ["SPY", "QQQ", "DIA", "XSP", "IWM"]:
         price_range = 0.03
     elif ticker in ["^VIX"]:
@@ -1510,9 +1519,18 @@ def update_options_chart(ticker, dates, selected_params):
 
 @app.callback(
     Output('price-chart', 'figure'),
-    [Input('ticker-input', 'value')]
+    [Input('search-button', 'n_clicks'),
+     Input('ticker-input', 'n_submit')],
+    [State('ticker-input', 'value')],
+    prevent_initial_call=False  # Разрешаем первоначальный вызов
 )
-def update_price_chart(ticker):
+def update_price_chart(n_clicks, n_submit, ticker):
+    ctx = dash.callback_context
+
+    # Если это первоначальный запуск и нет ввода от пользования
+    if not ctx.triggered or ticker is None:
+        ticker = 'SPX'  # Устанавливаем SPX по умолчанию
+
     ticker = normalize_ticker(ticker)
     interval = '1m'
     stock = yf.Ticker(ticker)
@@ -1528,7 +1546,7 @@ def update_price_chart(ticker):
     options_data, _, spot_price, max_ag_strike = get_option_data(ticker, [])
 
     if ticker in ["^SPX", "^NDX", "^RUT", "^DJI", "SPY", "QQQ", "IWM"]:
-        price_range = 0.018
+        price_range = 0.017
     else:
         price_range = 0.05
 
@@ -1703,9 +1721,20 @@ def update_price_chart(ticker):
 # Callback для обновления нового графика цены
 @app.callback(
     Output('price-chart-simplified', 'figure'),
-    [Input('ticker-input', 'value')]
+    [Input('search-button', 'n_clicks'),
+     Input('ticker-input', 'n_submit')],
+    [State('ticker-input', 'value')],
+    prevent_initial_call=False  # Разрешаем первоначальный вызов
 )
-def update_price_chart_simplified(ticker):
+def update_price_chart_simplified(n_clicks, n_submit, ticker):
+    ctx = dash.callback_context
+
+    # Если это первоначальный запуск - используем SPX
+    if not ctx.triggered:
+        ticker = 'SPX'
+    elif not ticker:  # Если поле пустое
+        ticker = 'SPX'
+
     ticker = normalize_ticker(ticker)
     interval = '1m'
     stock = yf.Ticker(ticker)
@@ -1724,7 +1753,7 @@ def update_price_chart_simplified(ticker):
         return go.Figure()
 
     if ticker in ["^SPX", "^NDX", "^RUT", "^DJI"]:
-        price_range = 0.018
+        price_range = 0.01
         resistance_zone_lower_percent = -0.0005
         resistance_zone_upper_percent = 0.0015
         support_zone_lower_percent = -0.0015
@@ -1882,9 +1911,18 @@ def display_page(pathname, search):
 # Callback для обновления графика на странице "Key Levels"
 @app.callback(
     Output('key-levels-chart', 'figure'),
-    [Input('ticker-input-key-levels', 'value')]
+    [Input('search-button-key-levels', 'n_clicks'),
+     Input('ticker-input-key-levels', 'n_submit')],
+    [State('ticker-input-key-levels', 'value')],
+    prevent_initial_call=False  # Разрешаем первоначальный вызов
 )
-def update_key_levels_chart_callback(ticker):
+def update_key_levels_chart_callback(n_clicks, n_submit, ticker):
+    ctx = dash.callback_context
+
+    # Если это первоначальный запуск и нет ввода от пользователя
+    if not ctx.triggered or ticker is None:
+        ticker = 'SPX'  # Устанавливаем SPX по умолчанию
+
     return update_key_levels_chart(ticker)
 
 @cache.memoize(timeout=60)  # Кэшируем на 5 минут
@@ -1909,9 +1947,9 @@ def update_key_levels_chart(ticker):
 
     # Определяем диапазон для всего графика (4% от цены открытия)
     if ticker in ["^SPX", "^NDX", "^RUT", "^DJI", "^VIX"]:
-        chart_range = 0.09  # 4% для индексов
+        chart_range = 0.045  # 4% для индексов
     elif ticker in ["SPY", "QQQ", "DIA", "XSP", "IWM"]:
-        chart_range = 0.1  # 4% для ETF
+        chart_range = 0.45  # 4% для ETF
     else:
         chart_range = 0.2  # 10% для акций
 
