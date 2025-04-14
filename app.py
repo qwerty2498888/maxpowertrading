@@ -1949,7 +1949,7 @@ def update_key_levels_chart(ticker):
     if ticker in ["^SPX", "^NDX", "^RUT", "^DJI", "^VIX"]:
         chart_range = 0.045  # 4% для индексов
     elif ticker in ["SPY", "QQQ", "DIA", "XSP", "IWM"]:
-        chart_range = 0.45  # 4% для ETF
+        chart_range = 0.05  # 4% для ETF
     else:
         chart_range = 0.2  # 10% для акций
 
